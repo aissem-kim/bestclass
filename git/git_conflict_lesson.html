@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git 충돌 해결 실습 수업 자료</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 15px; line-height: 1.75;
+    background: #f5f5f0; color: #1a1a18;
+    padding: 0 0 60px;
+  }
+  a { color: #185FA5; }
+
+  /* ── Header ── */
+  .page-header {
+    background: #1a1a18; color: #f5f5f0;
+    padding: 40px 48px 36px;
+  }
+  .page-header h1 { font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+  .page-header .meta { font-size: 13px; color: #9c9a92; }
+  .page-header .meta span { margin-right: 16px; }
+
+  /* ── Nav ── */
+  .phase-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: #fff; border-bottom: 1px solid #e0dfd7;
+    padding: 0 48px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .phase-btn {
+    padding: 14px 20px; font-size: 13px; font-weight: 500;
+    border: none; background: transparent;
+    color: #73726c; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap; transition: all .15s;
+    font-family: inherit;
+  }
+  .phase-btn:hover { color: #1a1a18; }
+  .phase-btn.active { color: #185FA5; border-bottom-color: #185FA5; }
+
+  /* ── Layout ── */
+  .container { max-width: 1060px; margin: 0 auto; padding: 40px 48px; }
+  @media (max-width: 700px) {
+    .page-header { padding: 28px 20px 24px; }
+    .phase-nav { padding: 0 16px; }
+    .container { padding: 28px 20px; }
+  }
+
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* ── Section heading ── */
+  .section-title {
+    font-size: 18px; font-weight: 600; color: #1a1a18;
+    margin: 36px 0 16px; padding-bottom: 8px;
+    border-bottom: 2px solid #e0dfd7;
+  }
+  .sub-title { font-size: 15px; font-weight: 600; color: #1a1a18; margin: 24px 0 10px; }
+
+  /* ── Scenario box ── */
+  .scenario-box {
+    background: #fff; border: 1px solid #e0dfd7;
+    border-radius: 10px; padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .scenario-box h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: #444441; line-height: 1.8; }
+
+  /* ── Flow ── */
+  .flow-row {
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .flow-node {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 500; border: 1px solid;
+  }
+  .fn-blue  { background:#E6F1FB; color:#185FA5; border-color:#B5D4F4; }
+  .fn-amber { background:#FAEEDA; color:#854F0B; border-color:#FAC775; }
+  .fn-red   { background:#FCEBEB; color:#A32D2D; border-color:#F7C1C1; }
+  .fn-green { background:#EAF3DE; color:#3B6D11; border-color:#C0DD97; }
+  .flow-arrow { color: #b4b2a9; font-size: 16px; }
+
+  /* ── Two column ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 650px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Student card ── */
+  .student-card { border-radius: 10px; border: 1px solid #e0dfd7; overflow: hidden; }
+  .card-header { padding: 12px 16px; }
+  .card-header .role { font-size: 13px; font-weight: 600; }
+  .card-header .sub  { font-size: 12px; color: #73726c; margin-top: 2px; }
+  .card-a .card-header { background: #E6F1FB; border-bottom: 1px solid #B5D4F4; }
+  .card-a .role { color: #185FA5; }
+  .card-b .card-header { background: #FAEEDA; border-bottom: 1px solid #FAC775; }
+  .card-b .role { color: #854F0B; }
+  .card-body { padding: 16px; background: #fff; }
+
+  /* ── Steps ── */
+  .step-list { list-style: none; }
+  .step-item { margin-bottom: 14px; }
+  .step-label { font-size: 12px; color: #73726c; margin-bottom: 6px; font-weight: 500; }
+
+  /* ── Code block ── */
+  .cmd-wrap { position: relative; margin-bottom: 4px; }
+  .cmd-block {
+    background: #f1efe8; border: 1px solid #d3d1c7;
+    border-radius: 8px; padding: 10px 14px;
+    overflow-x: auto;
+  }
+  .cmd-block pre, .cmd-block code {
+    font-family: 'Consolas', 'D2Coding', 'Courier New', monospace;
+    font-size: 12.5px; color: #2c2c2a; white-space: pre;
+    line-height: 1.6;
+  }
+  .copy-btn {
+    position: absolute; right: 8px; top: 8px;
+    font-size: 11px; color: #73726c;
+    background: #fff; border: 1px solid #d3d1c7;
+    border-radius: 4px; padding: 2px 8px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .copy-btn:hover { background: #f5f5f0; }
+
+  /* ── Notes ── */
+  .note { font-size: 12.5px; color: #73726c; margin-top: 5px; line-height: 1.6; }
+  .note.warn    { color: #854F0B; }
+  .note.danger  { color: #A32D2D; }
+  .note.success { color: #3B6D11; }
+
+  /* ── Tip / alert boxes ── */
+  .tip-box {
+    background: #EAF3DE; border: 1px solid #C0DD97;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .tip-box p { font-size: 13.5px; color: #3B6D11; line-height: 1.75; }
+  .warn-box {
+    background: #FAEEDA; border: 1px solid #FAC775;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .warn-box p { font-size: 13.5px; color: #854F0B; line-height: 1.75; }
+  .danger-box {
+    background: #FCEBEB; border: 1px solid #F7C1C1;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .danger-box p { font-size: 13.5px; color: #A32D2D; line-height: 1.75; }
+
+  /* ── Conflict view ── */
+  .conflict-view {
+    border: 1px solid #F7C1C1; border-radius: 10px;
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .conflict-header {
+    background: #FCEBEB; padding: 10px 16px;
+    border-bottom: 1px solid #F7C1C1;
+    font-size: 13px; font-weight: 600; color: #A32D2D;
+  }
+  .conflict-body { background: #fff; }
+  .conflict-line { font-family: 'Consolas','D2Coding',monospace; font-size: 13px; padding: 3px 16px; line-height: 1.8; }
+  .cl-mine   { background: rgba(183,80,80,.07); color: #A32D2D; }
+  .cl-theirs { background: rgba(80,130,180,.07); color: #185FA5; }
+  .cl-marker { background: #f5f5f0; color: #888780; font-weight: 600; }
+  .cl-neutral{ color: #444441; }
+
+  /* ── Resolve steps ── */
+  .resolve-step {
+    display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 12px; padding: 14px 16px;
+    border: 1px solid #e0dfd7; border-radius: 8px;
+    background: #fff;
+  }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: #E6F1FB; color: #185FA5;
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-content { flex: 1; min-width: 0; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1a1a18; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13.5px; }
+  th { background: #f1efe8; padding: 10px 14px; font-weight: 600; text-align: left; border: 1px solid #d3d1c7; }
+  td { padding: 9px 14px; border: 1px solid #e0dfd7; }
+  tr:nth-child(even) td { background: #fafaf8; }
+
+  /* ── Summary grid ── */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 24px; }
+  .summary-card { background: #fff; border: 1px solid #e0dfd7; border-radius: 8px; padding: 16px; text-align: center; }
+  .summary-card .icon  { font-size: 22px; margin-bottom: 6px; }
+  .summary-card .label { font-size: 12px; color: #73726c; }
+  .summary-card .value { font-size: 13.5px; font-weight: 600; color: #1a1a18; margin-top: 3px; font-family: 'Consolas',monospace; }
+
+  /* ── Quiz ── */
+  .quiz-item { margin-bottom: 12px; padding: 14px 16px; background: #fff; border: 1px solid #e0dfd7; border-radius: 8px; }
+  .quiz-q { font-size: 14px; color: #1a1a18; margin-bottom: 8px; font-weight: 500; }
+  .quiz-toggle {
+    font-size: 12px; color: #185FA5; cursor: pointer;
+    background: none; border: 1px solid #B5D4F4;
+    border-radius: 4px; padding: 3px 10px; font-family: inherit;
+    transition: background .15s;
+  }
+  .quiz-toggle:hover { background: #E6F1FB; }
+  .quiz-a {
+    display: none; margin-top: 10px; font-size: 13.5px;
+    color: #3B6D11; background: #EAF3DE;
+    border-radius: 6px; padding: 10px 14px; line-height: 1.75;
+  }
+  code {
+    font-family: 'Consolas','D2Coding',monospace;
+    font-size: 12px; background: #f1efe8;
+    padding: 1px 5px; border-radius: 3px; color: #2c2c2a;
+  }
+  hr { border: none; border-top: 1px solid #e0dfd7; margin: 32px 0; }
+
+  /* ── Footer ── */
+  .page-footer {
+    margin-top: 60px; padding: 24px 48px;
+    border-top: 1px solid #e0dfd7;
+    font-size: 12px; color: #b4b2a9; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Git 충돌(Conflict) 해결 실습 수업 자료</h1>
+</div>
+
+<nav class="phase-nav">
+  <button class="phase-btn active" onclick="showPhase('intro')">1단계 준비</button>
+  <button class="phase-btn" onclick="showPhase('setup')">2단계 환경 구성</button>
+  <button class="phase-btn" onclick="showPhase('conflict')">3단계 충돌 발생</button>
+  <button class="phase-btn" onclick="showPhase('resolve')">4단계 충돌 해결</button>
+  <button class="phase-btn" onclick="showPhase('quiz')">마무리 퀴즈</button>
+</nav>
+
+<div class="container">
+
+  <!-- ======= 1단계: 수업 소개 ======= -->
+  <div class="phase active" id="phase-intro">
+    <div class="section-title">수업 개요 &amp; 시나리오</div>
+
+    <div class="scenario-box">
+      <h3>오늘의 시나리오</h3>
+      <p>팀 프로젝트로 <strong>계산기 프로그램(calculator.py)</strong>을 개발 중입니다.<br>
+      직원 A와 직원 B가 <strong>같은 파일의 같은 줄</strong>을 동시에 수정해서 충돌이 발생합니다.<br>
+      이 충돌을 직접 해결하고 merge까지 완료하는 실습을 진행합니다.</p>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-node fn-blue">저장소 생성</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node fn-blue">A: feature/add</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node fn-amber">B: feature/multiply</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node fn-red">충돌 발생</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node fn-green">해결 &amp; merge</div>
+    </div>
+
+    <div class="sub-title">역할 분담</div>
+    <table>
+      <thead><tr><th>구분</th><th>역할</th><th>담당 브랜치</th><th>담당 작업</th></tr></thead>
+      <tbody>
+        <tr><td><strong>직원 A</strong></td><td>팀장</td><td><code>feature/add</code></td><td>저장소 생성 + 덧셈 기능</td></tr>
+        <tr><td><strong>직원 B</strong></td><td>팀원</td><td><code>feature/multiply</code></td><td>클론 후 곱셈 기능</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip-box">
+      <p>충돌은 같은 파일의 같은 줄을 두 사람이 <strong>다르게 수정</strong>할 때 발생합니다.<br>
+      오늘 실습은 이 상황을 <strong>의도적으로 만들고</strong> → 직접 해결하는 것이 목표입니다.</p>
+    </div>
+  </div>
+
+  <!-- ======= 2단계: 환경 구성 ======= -->
+  <div class="phase" id="phase-setup">
+    <div class="section-title">환경 구성</div>
+
+    <div class="scenario-box">
+      <h3>초기 파일 내용 (calculator.py)</h3>
+      <p>두 직원이 공유할 시작 파일입니다. main 브랜치에 먼저 올린 후 각자 브랜치를 만듭니다.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="student-card card-a">
+        <div class="card-header">
+          <div class="role">직원 A — 저장소 초기화</div>
+          <div class="sub">GitHub에 원격 저장소 생성 후 진행</div>
+        </div>
+        <div class="card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-label">① 폴더 생성 및 초기화 <br/>
+			  (※) 기존에 사용하던 team_project 폴더와 깃허브 team_project을 이용한다면 아래 ① 코드는 안해도 됩니다. 
+			  </div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>mkdir git-conflict-lab
+cd git-conflict-lab
+git init
+git remote add origin [원격저장소URL]</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">② calculator.py 파일 생성</div>
+              <div class="cmd-block"><pre>def calculate(a, b):
+    result = a + b   # ← 충돌 포인트
+    return result
+
+print(calculate(3, 4))</pre></div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">③ 첫 번째 커밋 &amp; 푸시</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git add calculator.py
+git commit -m "초기 계산기 파일 추가"
+git push -u origin main</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">④ 작업 브랜치 생성</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git checkout -b feature/add</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+              <p class="note">A는 feature/add 브랜치에서 작업합니다</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="student-card card-b">
+        <div class="card-header">
+          <div class="role">직원 B — 저장소 클론</div>
+          <div class="sub">A의 저장소 주소를 받아서 진행</div>
+        </div>
+        <div class="card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-label">① A의 저장소 클론 <br/>
+			  (※) 기존에 사용하던 team_project 폴더와 깃허브 team_project을 이용한다면 아래 코드는 안해도 됩니다. 
+			  </div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git clone [A의저장소URL]
+cd git-conflict-lab</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+              <div class="step-label">기본 프로젝트에서 작업할 때는 A의 저장소 PULL 작업 <br/> 
+			  </div>			  
+			  <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git pull origin main</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+              <p class="note">A가 push한 파일이 그대로 받아집니다</p>
+            </li>
+            <li class="step-item">
+              <div class="step-label">② 파일 내용 확인<br/>
+			  cat 명령어는 리눅스명령어입니다. 윈도우에서는 에디터로 확인할 수 있습니다.
+			  </div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>cat calculator.py
+git log --oneline</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">③ 작업 브랜치 생성</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git checkout -b feature/multiply</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">④ 준비 완료 확인</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git branch
+git status</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <p>여기까지 완료되면 두 직원 모두 같은 파일을 가지고 각자의 브랜치에 있는 상태입니다.<br>
+      다음 단계에서 <strong>의도적으로 같은 줄을 다르게 수정</strong>해 충돌을 만듭니다.</p>
+    </div>
+  </div>
+
+  <!-- ======= 3단계: 충돌 발생 ======= -->
+  <div class="phase" id="phase-conflict">
+    <div class="section-title">충돌 발생시키기</div>
+
+    <div class="scenario-box">
+      <h3>충돌 시나리오</h3>
+      <p>A와 B가 <code>calculator.py</code> 4번째 줄 <strong>같은 위치</strong>를 각자 다르게 수정합니다.<br>
+      A는 덧셈으로, B는 곱셈으로 바꿉니다. → 나중에 merge하면 충돌!</p>
+    </div>
+
+    <div class="two-col">
+      <div class="student-card card-a">
+        <div class="card-header">
+          <div class="role">직원 A — 덧셈 기능으로 수정</div>
+        </div>
+        <div class="card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-label">① 파일 수정 (4번째 줄 주석 추가)</div>
+              <div class="cmd-block"><pre>result = a + b  # 덧셈 기능 추가</pre></div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">② 커밋 &amp; 푸시</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git add calculator.py
+git commit -m "덧셈 기능 구현"
+git push origin feature/add</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">③ main에 merge</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git checkout main
+git merge feature/add
+git push origin main</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+              <p class="note success">✅ A의 코드가 먼저 main에 반영됩니다</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="student-card card-b">
+        <div class="card-header">
+          <div class="role">직원 B — 곱셈 기능으로 수정</div>
+        </div>
+        <div class="card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-label">① 파일 수정 (같은 4번째 줄을 다르게!)</div>
+              <div class="cmd-block"><pre>result = a * b  # 곱셈 기능으로 변경</pre></div>
+              <p class="note warn">⚠ A와 같은 줄을 다르게 수정!</p>
+            </li>
+            <li class="step-item">
+              <div class="step-label">② 커밋 &amp; 푸시</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git add calculator.py
+git commit -m "곱셈 기능으로 변경"
+git push origin feature/multiply</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">③ main 최신 상태 가져오기</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git checkout main
+git pull origin main</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-label">④ merge 시도 → 충돌 발생!</div>
+              <div class="cmd-wrap">
+                <div class="cmd-block"><pre>git merge feature/multiply</pre></div>
+                <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+              </div>
+              <p class="note danger">❌ CONFLICT 메시지가 뜹니다!</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+    <div class="sub-title">충돌 파일 모습 (calculator.py)</div>
+    <div class="conflict-view">
+      <div class="conflict-header">충돌 마커가 포함된 파일 내용</div>
+      <div class="conflict-body">
+        <div class="conflict-line cl-neutral">def calculate(a, b):</div>
+        <div class="conflict-line cl-marker">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD &nbsp;&nbsp;← main의 코드 (A)</div>
+        <div class="conflict-line cl-mine">    result = a + b  # 덧셈 기능 추가</div>
+        <div class="conflict-line cl-marker">======= &nbsp;&nbsp;← 구분선</div>
+        <div class="conflict-line cl-theirs">    result = a * b  # 곱셈 기능으로 변경</div>
+        <div class="conflict-line cl-marker">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/multiply &nbsp;&nbsp;← B의 코드</div>
+        <div class="conflict-line cl-neutral">    return result</div>
+        <div class="conflict-line cl-neutral"></div>
+        <div class="conflict-line cl-neutral">print(calculate(3, 4))</div>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>마커</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> ~ <code>=======</code></td><td>현재 브랜치(HEAD)의 코드 — A가 작성</td></tr>
+        <tr><td><code>=======</code> ~ <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code></td><td>합치려는 브랜치의 코드 — B가 작성</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip-box">
+      <p>마커 3개(<code>&lt;&lt;&lt;</code> <code>===</code> <code>&gt;&gt;&gt;</code>)를 <strong>모두 삭제</strong>하고 원하는 코드만 남겨야 해결됩니다.</p>
+    </div>
+  </div>
+
+  <!-- ======= 4단계: 충돌 해결 ======= -->
+  <div class="phase" id="phase-resolve">
+    <div class="section-title">충돌 해결</div>
+
+    <div class="scenario-box">
+      <h3>해결 방법 3가지</h3>
+      <p>상황에 따라 아래 중 하나를 선택합니다. 오늘 실습은 <strong>방법 ③ 협의 후 직접 수정</strong>으로 진행합니다.</p>
+    </div>
+
+    <div class="resolve-step">
+      <div class="step-num">①</div>
+      <div class="step-content">
+        <div class="step-title">내 코드(HEAD) 유지 — A의 코드만 남기기</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git checkout --ours calculator.py</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+        <p class="note">마커를 포함해 B의 코드를 모두 버리고 A 코드만 남깁니다</p>
+      </div>
+    </div>
+
+    <div class="resolve-step">
+      <div class="step-num">②</div>
+      <div class="step-content">
+        <div class="step-title">상대방 코드 채택 — B의 코드만 남기기</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git checkout --theirs calculator.py</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+        <p class="note">A의 코드를 버리고 B 코드만 남깁니다</p>
+      </div>
+    </div>
+
+    <div class="resolve-step">
+      <div class="step-num">③</div>
+      <div class="step-content">
+        <div class="step-title">협의 후 직접 수정 (권장) — 두 기능 모두 살리기</div>
+        <div class="cmd-block"><pre># 파일을 편집기로 열어 마커 삭제 후 아래처럼 수정
+def calculate(a, b, op="add"):
+    if op == "add":
+        result = a + b   # 덧셈
+    else:
+        result = a * b   # 곱셈
+    return result</pre></div>
+        <p class="note success">✅ 마커 3개(<code>&lt;&lt;&lt;</code> <code>===</code> <code>&gt;&gt;&gt;</code>)를 반드시 모두 삭제해야 합니다!</p>
+      </div>
+    </div>
+
+    <hr>
+	<div class="flow-row"> <div class="flow-node fn-red">(직원 B — merge 담당)</div><div class="sub-title">충돌 해결 완료 명령어 순서</div></div>
+
+    <ul class="step-list">
+      <li class="step-item">
+        <div class="step-label">① 충돌 상태 확인</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git status</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+        <p class="note">both modified: calculator.py 가 표시됩니다</p>
+      </li>
+      <li class="step-item">
+        <div class="step-label">② 편집기로 파일 열어 마커 삭제 및 코드 정리</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>code calculator.py      # VS Code
+# 또는
+notepad calculator.py   # 메모장</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-label">③ 해결된 파일 스테이징</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git add calculator.py</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-label">④ merge 커밋 완료</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git commit -m "충돌 해결: 덧셈/곱셈 기능 통합"</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-label">⑤ 원격 저장소에 반영</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git push origin main</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-label">⑥ 로그로 결과 확인</div>
+        <div class="cmd-wrap">
+          <div class="cmd-block"><pre>git log --oneline --graph --all</pre></div>
+          <button class="copy-btn" onclick="copyCmd(this)">복사</button>
+        </div>
+        <p class="note success">✅ 두 브랜치가 합쳐진 merge commit이 보이면 성공!</p>
+      </li>
+    </ul>
+
+
+    <div class="flow-row"> <div class="flow-node fn-red">(직원 A)</div><div class="sub-title">충돌 해결 완료 명령어 순서</div></div>
+    <div class="tip-box" style="margin-top:16px">
+      <p>직원 A도 최신 상태를 받아야 합니다:<br>
+      <code>git checkout main</code> → <code>git pull origin main</code></p>
+    </div>
+
+    <div class="warn-box">
+      <p>💡 <strong>팁</strong>: VS Code의 충돌 해결 버튼(<em>Accept Current Change / Accept Incoming Change / Accept Both Changes</em>)도 함께 시연하면 실무 감각 교육에 효과적입니다.</p>
+    </div>
+  </div>
+
+  <!-- ======= 마무리 퀴즈 ======= -->
+  <div class="phase" id="phase-quiz">
+    <div class="section-title">마무리 퀴즈</div>
+
+    <div class="scenario-box">
+      <h3>핵심 개념 정리</h3>
+      <p>아래 퀴즈로 오늘 수업 내용을 점검해 보세요. 버튼을 눌러 정답을 확인합니다.</p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="icon">🔀</div>
+        <div class="label">충돌 원인</div>
+        <div class="value">같은 줄 동시 수정</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">📄</div>
+        <div class="label">충돌 마커</div>
+        <div class="value">&lt;&lt;&lt; === &gt;&gt;&gt;</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">✅</div>
+        <div class="label">해결 핵심</div>
+        <div class="value">마커 삭제 후 add</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">🔚</div>
+        <div class="label">완료 명령</div>
+        <div class="value">git commit</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="quiz-item">
+      <p class="quiz-q">Q1. 충돌이 발생하는 조건은 무엇인가요?</p>
+      <button class="quiz-toggle" onclick="toggleAnswer(this)">▶ 답 보기</button>
+      <div class="quiz-a">같은 파일의 같은 줄(혹은 근처)을 두 브랜치에서 서로 다르게 수정한 후 merge할 때 발생합니다.</div>
+    </div>
+    <div class="quiz-item">
+      <p class="quiz-q">Q2. 충돌 파일에서 <code>=======</code> 아래쪽 코드는 어느 브랜치의 것인가요?</p>
+      <button class="quiz-toggle" onclick="toggleAnswer(this)">▶ 답 보기</button>
+      <div class="quiz-a">merge 하려는 브랜치(feature 브랜치)의 코드입니다. 위쪽은 HEAD(현재 브랜치)의 코드입니다.</div>
+    </div>
+    <div class="quiz-item">
+      <p class="quiz-q">Q3. 충돌을 해결한 후 반드시 실행해야 하는 명령어 두 가지는?</p>
+      <button class="quiz-toggle" onclick="toggleAnswer(this)">▶ 답 보기</button>
+      <div class="quiz-a"><code>git add [파일명]</code> 으로 스테이징한 후, <code>git commit</code> 으로 merge 커밋을 완료해야 합니다.</div>
+    </div>
+    <div class="quiz-item">
+      <p class="quiz-q">Q4. 내 코드를 모두 버리고 상대방 코드만 채택하는 명령어는?</p>
+      <button class="quiz-toggle" onclick="toggleAnswer(this)">▶ 답 보기</button>
+      <div class="quiz-a"><code>git checkout --theirs [파일명]</code> 입니다. 반대로 내 코드를 유지하려면 <code>--ours</code> 를 사용합니다.</div>
+    </div>
+    <div class="quiz-item">
+      <p class="quiz-q">Q5. 충돌 해결 후 두 브랜치 히스토리를 시각적으로 확인하는 명령어는?</p>
+      <button class="quiz-toggle" onclick="toggleAnswer(this)">▶ 답 보기</button>
+      <div class="quiz-a"><code>git log --oneline --graph --all</code> 명령어로 브랜치 분기와 merge 지점을 그래프로 확인할 수 있습니다.</div>
+    </div>
+
+    <hr>
+    <table>
+      <thead><tr><th>항목</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>충돌 원인</td><td>같은 줄을 두 브랜치에서 다르게 수정 후 merge</td></tr>
+        <tr><td>충돌 마커</td><td><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code></td></tr>
+        <tr><td>해결 핵심</td><td>마커 삭제 후 원하는 코드로 정리 → <code>git add</code></td></tr>
+        <tr><td>완료 명령</td><td><code>git commit</code> (merge commit 생성)</td></tr>
+        <tr><td>확인 명령</td><td><code>git log --oneline --graph --all</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<div class="page-footer">
+  Git 충돌 해결 실습 수업 자료 | 취업준비생 IT 프로그래밍 강의
+</div>
+
+<script>
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('phase-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function copyCmd(btn) {
+  const pre = btn.previousElementSibling.querySelector('pre');
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '완료!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+function toggleAnswer(btn) {
+  const ans = btn.nextElementSibling;
+  const visible = ans.style.display === 'block';
+  ans.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '▶ 답 보기' : '▼ 닫기';
+}
+</script>
+</body>
+</html>
