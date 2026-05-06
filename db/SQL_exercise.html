@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL 기본 연습문제</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #eef1f8;
+    --border: #d5daea;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --green: #16a34a;
+    --yellow: #d97706;
+    --red: #dc2626;
+    --text: #1e2235;
+    --text-muted: #6b7280;
+    --code-bg: #f0f4ff;
+    --tab-a: #2563eb;
+    --tab-b: #7c3aed;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #e8eeff 0%, #f4f6fb 50%, #ede9ff 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 0 30px;
+    text-align: center;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(37,99,235,0.1);
+    border: 1px solid rgba(37,99,235,0.3);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-muted); font-size: 14px; }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* ── TAB NAV ── */
+  .tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0;
+    position: relative;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .tab-btn .tab-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    transition: all 0.2s;
+  }
+  .tab-btn.tab-a .tab-icon { background: rgba(37,99,235,0.12); color: var(--tab-a); }
+  .tab-btn.tab-b .tab-icon { background: rgba(124,58,237,0.12); color: var(--tab-b); }
+
+  .tab-btn.tab-a.active {
+    background: #fff;
+    color: var(--tab-a);
+    border-color: rgba(37,99,235,0.3);
+    border-bottom: 2px solid #fff;
+    margin-bottom: -1px;
+    z-index: 2;
+  }
+  .tab-btn.tab-b.active {
+    background: #fff;
+    color: var(--tab-b);
+    border-color: rgba(124,58,237,0.3);
+    border-bottom: 2px solid #fff;
+    margin-bottom: -1px;
+    z-index: 2;
+  }
+  .tab-btn.tab-a.active .tab-icon { background: rgba(37,99,235,0.15); }
+  .tab-btn.tab-b.active .tab-icon { background: rgba(124,58,237,0.15); }
+  .tab-btn:not(.active):hover { background: var(--surface); color: var(--text); }
+
+  /* ── TAB CONTENT ── */
+  .tab-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0 0 16px 16px;
+    padding: 32px 28px;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .tab-panel.tab-a-panel { border-top: 3px solid var(--tab-a); }
+  .tab-panel.tab-b-panel { border-top: 3px solid var(--tab-b); }
+
+  /* ── PANEL HEADER ── */
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-badge {
+    font-size: 22px;
+    font-weight: 900;
+    padding: 6px 16px;
+    border-radius: 10px;
+  }
+  .tab-a-panel .panel-badge { background: rgba(37,99,235,0.08); color: var(--tab-a); }
+  .tab-b-panel .panel-badge { background: rgba(124,58,237,0.08); color: var(--tab-b); }
+  .panel-title { font-size: 18px; font-weight: 700; }
+  .panel-desc { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ── QUESTION CARD ── */
+  .q-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .q-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .tab-a-panel .q-card:hover { border-color: rgba(37,99,235,0.35); }
+  .tab-b-panel .q-card:hover { border-color: rgba(124,58,237,0.35); }
+
+  .q-body { padding: 18px 20px; }
+
+  .q-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tab-a-panel .q-num { background: rgba(37,99,235,0.08); color: var(--tab-a); border: 1px solid rgba(37,99,235,0.2); }
+  .tab-b-panel .q-num { background: rgba(124,58,237,0.08); color: var(--tab-b); border: 1px solid rgba(124,58,237,0.2); }
+
+  .q-text { font-size: 15px; font-weight: 500; line-height: 1.65; }
+
+  .badge-hint {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .badge-tip  { background: rgba(217,119,6,0.1);  color: var(--yellow); border: 1px solid rgba(217,119,6,0.25); }
+  .badge-warn { background: rgba(220,38,38,0.1);  color: var(--red);    border: 1px solid rgba(220,38,38,0.25); }
+  .badge-ok   { background: rgba(22,163,74,0.1);  color: var(--green);  border: 1px solid rgba(22,163,74,0.25); }
+
+  /* ── TABLE ── */
+  .q-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  .q-table th {
+    background: rgba(37,99,235,0.07);
+    color: var(--accent);
+    font-weight: 700;
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  .tab-b-panel .q-table th { background: rgba(124,58,237,0.07); color: var(--tab-b); }
+  .q-table td { padding: 7px 12px; border: 1px solid var(--border); font-size: 13px; }
+  .q-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+  .err-row td { color: var(--red); }
+  .na { color: var(--text-muted); font-style: italic; }
+
+  /* ── DIVIDER ── */
+  .q-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* ── ALL ANSWERS SECTION (per tab) ── */
+  .all-ans-wrap {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 2px dashed var(--border);
+    text-align: center;
+  }
+  .all-ans-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .show-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 32px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    color: #fff;
+    margin-bottom: 28px;
+  }
+  .tab-a-panel .show-all-btn { background: linear-gradient(135deg, var(--tab-a), #1d4ed8); }
+  .tab-b-panel .show-all-btn { background: linear-gradient(135deg, var(--tab-b), #6d28d9); }
+  .show-all-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
+  .ans-block { display: none; text-align: left; }
+  .ans-block.open { display: block; }
+
+  /* ── ANSWER CARD ── */
+  .ans-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .ans-card-header {
+    background: var(--surface2);
+    padding: 11px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ans-card-header .a-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 6px;
+  }
+  .tab-a-panel .a-badge { background: rgba(37,99,235,0.1); color: var(--tab-a); }
+  .tab-b-panel .a-badge { background: rgba(124,58,237,0.1); color: var(--tab-b); }
+  .ans-card-header span { font-size: 13px; font-weight: 600; }
+  .ans-ok { font-size: 11px; margin-left: auto; color: var(--green); font-weight: 700; }
+
+  pre {
+    background: var(--code-bg);
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--text);
+  }
+
+  /* ── SQL SYNTAX ── */
+  .kw  { color: #1d4ed8; font-weight: 700; }
+  .fn  { color: #7c3aed; }
+  .str { color: #15803d; }
+  .nl  { color: #b45309; }
+  .cm  { color: #9ca3af; font-style: italic; }
+  .tbl { color: #be185d; font-weight: 600; }
+
+  /* ── NOTE ── */
+  .note {
+    background: rgba(217,119,6,0.06);
+    border: 1px solid rgba(217,119,6,0.2);
+    border-left: 3px solid var(--yellow);
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-size: 13px;
+    color: #92400e;
+    margin: 16px 0;
+    line-height: 1.7;
+  }
+  .note strong { color: var(--yellow); }
+
+  /* ── PROGRESS BAR ── */
+  .prog-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+  }
+  .prog-info { flex: 1; }
+  .prog-info p { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+  .prog-bar-bg { height: 5px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .prog-bar-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+  .tab-a-panel .prog-bar-fill { background: linear-gradient(90deg, var(--tab-a), #818cf8); }
+  .tab-b-panel .prog-bar-fill { background: linear-gradient(90deg, var(--tab-b), #a78bfa); }
+  .prog-count { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; }
+  .tab-a-panel .prog-count { color: var(--tab-a); }
+  .tab-b-panel .prog-count { color: var(--tab-b); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL Practice</div>
+  <h1>SQL 기본 <span>연습문제</span></h1>
+  <p>DDL · DML · 제약조건 · 외래키 — 탭을 선택하여 연습하세요</p>
+</header>
+
+<div class="container">
+
+  <!-- ── TAB NAV ── -->
+  <div class="tab-nav">
+    <button class="tab-btn tab-a active" onclick="switchTab('a')">
+      <span class="tab-icon">A</span>
+      sawon / buseo 테이블 연습
+    </button>
+    <button class="tab-btn tab-b" onclick="switchTab('b')">
+      <span class="tab-icon">B</span>
+      student / library 테이블 연습
+    </button>
+  </div>
+
+  <!-- ── TAB CONTENT ── -->
+  <div class="tab-content">
+
+    <!-- ════════════════ TAB A ════════════════ -->
+    <div class="tab-panel tab-a-panel active" id="panel-a">
+
+      <div class="panel-header">
+        <div class="panel-badge">A</div>
+        <div>
+          <div class="panel-title">sawon / buseo 테이블 연습</div>
+          <div class="panel-desc">테이블 생성, 제약조건 추가, DML 연습 — 총 13문제</div>
+        </div>
+      </div>
+
+      <!-- Progress A -->
+      <div class="prog-wrap">
+        <div class="prog-info">
+          <p>📊 풀이 진행 현황</p>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-a" style="width:0%"></div></div>
+        </div>
+        <div class="prog-count" id="cnt-a">0 / 13</div>
+      </div>
+
+      <!-- Q1 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 1</span>
+            <div class="q-text">아래 구조로 <strong>sawon</strong> 테이블을 생성하세요.</div>
+          </div>
+          <table class="q-table">
+            <tr><th>한글명</th><th>컬럼명</th><th>데이터 타입</th></tr>
+            <tr><td>사번</td><td>sabun</td><td>6자리 숫자</td></tr>
+            <tr><td>이름</td><td>sawon_name</td><td>최대 한글 5자리</td></tr>
+            <tr><td>업무</td><td>ubmu</td><td>최대 한글 10자리</td></tr>
+            <tr><td>월급</td><td>weolgub</td><td>정수 8자리 + 소수점 2자리</td></tr>
+            <tr><td>부서</td><td>buseo</td><td>숫자</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 2</span>
+            <div class="q-text"><strong>sabun</strong> 컬럼을 <strong>기본키 (PRIMARY KEY)</strong> 로 설정하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 3</span>
+            <div class="q-text">최대 한글 10자리의 <strong>jiyeok</strong> 컬럼을 추가하되, <strong>NULL 값이 입력되지 않도록</strong> 지정하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 4</span>
+            <div class="q-text"><strong>weolgub</strong> 컬럼을 <strong>정수형 (INT)</strong> 으로 변경하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 5</span>
+            <div class="q-text"><strong>ubmu</strong> 컬럼에 <strong>'개발', '유지보수', '관리'</strong> 만 입력되도록 CHECK 제약조건을 설정하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 6</span>
+            <div class="q-text"><strong>ubmu</strong> 컬럼에 데이터 미입력 시 기본값으로 <strong>'개발'</strong> 이 설정되도록 하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 7</span>
+            <div class="q-text">아래 구조로 <strong>buseo</strong> 테이블을 생성하세요.</div>
+          </div>
+          <table class="q-table">
+            <tr><th>한글명</th><th>컬럼명</th><th>데이터 타입</th></tr>
+            <tr><td>부서번호</td><td>buseo_no</td><td>숫자형 기본키</td></tr>
+            <tr><td>부서명</td><td>buseo_name</td><td>최대 한글 10자리</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 8</span>
+            <div class="q-text"><strong>sawon.buseo</strong> 컬럼을 <strong>buseo.buseo_no</strong> 를 참조하는 외래키 (FOREIGN KEY) 로 설정하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 9</span>
+            <div class="q-text"><strong>buseo</strong> 테이블에 아래 데이터를 입력하세요.</div>
+          </div>
+          <table class="q-table">
+            <tr><th>buseo_no</th><th>buseo_name</th></tr>
+            <tr><td>101</td><td>소프트웨어유지보수부</td></tr>
+            <tr><td>202</td><td>관리부</td></tr>
+            <tr><td>303</td><td>인적자원부</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 10</span>
+            <div class="q-text">
+              <strong>sawon</strong> 테이블에 아래 데이터를 입력하세요.
+              <span class="badge-hint badge-warn">⚠️ 오류 발생 행을 찾아보세요!</span>
+            </div>
+          </div>
+          <table class="q-table">
+            <tr><th>sabun</th><th>sawon_name</th><th>ubmu</th><th>weolgub</th><th>buseo</th><th>jiyeok</th></tr>
+            <tr><td>8001</td><td>홍길동이군</td><td class="na">(없음)</td><td>100000</td><td>101</td><td>부산</td></tr>
+            <tr><td>8002</td><td>홍길자</td><td>사무</td><td>200000</td><td>202</td><td>인천</td></tr>
+            <tr><td>8003</td><td>홍길순</td><td>개발</td><td class="na">(없음)</td><td>111</td><td>대전</td></tr>
+            <tr><td>8004</td><td>홍길석</td><td class="na">(없음)</td><td>12345678</td><td class="na">(없음)</td><td>서울</td></tr>
+            <tr><td>8005</td><td>홍길철</td><td>유지보수</td><td class="na">(없음)</td><td>303</td><td>판교</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q11 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 11</span>
+            <div class="q-text"><strong>sawon</strong> 테이블에서 <strong>jiyeok</strong> 컬럼을 제거하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 12</span>
+            <div class="q-text">
+              <strong>buseo</strong> 테이블에서 부서명이 <strong>'인적자원부'</strong> 인 행을 삭제하세요.
+              <span class="badge-hint badge-warn">⚠️ FK 오류 발생? 이유를 생각해보세요!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q13 -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 13</span>
+            <div class="q-text">
+              1~8 단계를 각각 <strong>하나의 CREATE 문</strong>으로 작성하세요.
+              <span class="badge-hint badge-tip">💡 DROP TABLE 후 실행</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        💡 <strong>MySQL 8 참고</strong>: ZEROFILL 옵션이 일부 버전에서 지원되지 않습니다. ZEROFILL은 숫자 앞을 0으로 채워 자릿수를 맞추는 옵션으로, 이 옵션이 없으면 <code>INT(숫자)</code>는 의미가 없고 INT형 최대치인 10자리로 지정됩니다.
+      </div>
+
+      <!-- ── ALL ANSWERS A ── -->
+      <div class="all-ans-wrap">
+        <p class="all-ans-label">모든 문제를 풀어봤다면 아래 버튼으로 전체 정답을 확인하세요.</p>
+        <button class="show-all-btn" onclick="toggleAllAns('a')">
+          🔓 전체 정답 펼치기
+        </button>
+        <div class="ans-block" id="ans-block-a">
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q1</span><span>sawon 테이블 생성</span></div>
+            <pre><span class="kw">CREATE TABLE</span> <span class="tbl">sawon</span>
+(
+    sabun       <span class="fn">INT</span>(<span class="nl">6</span>)
+  , sawon_name  <span class="fn">VARCHAR</span>(<span class="nl">15</span>)
+  , ubmu        <span class="fn">VARCHAR</span>(<span class="nl">30</span>)
+  , weolgub     <span class="fn">DECIMAL</span>(<span class="nl">10</span>, <span class="nl">2</span>)
+  , buseo       <span class="fn">INT</span>
+);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q2</span><span>sabun PRIMARY KEY 설정</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">ADD CONSTRAINT</span> pk_sawon_sabun <span class="kw">PRIMARY KEY</span> (sabun);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q3</span><span>jiyeok 컬럼 추가 (NOT NULL)</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">ADD</span> jiyeok <span class="fn">VARCHAR</span>(<span class="nl">30</span>) <span class="kw">NOT NULL</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q4</span><span>weolgub 타입 변경 → INT</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">MODIFY</span> weolgub <span class="fn">INT</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q5</span><span>ubmu CHECK 제약조건</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">ADD CONSTRAINT</span> ck_sawon_ubmu
+    <span class="kw">CHECK</span> (ubmu <span class="kw">IN</span> (<span class="str">'개발'</span>, <span class="str">'유지보수'</span>, <span class="str">'관리'</span>));</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q6</span><span>ubmu DEFAULT '개발'</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">MODIFY</span> ubmu <span class="fn">VARCHAR</span>(<span class="nl">30</span>) <span class="kw">DEFAULT</span> <span class="str">'개발'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q7</span><span>buseo 테이블 생성</span></div>
+            <pre><span class="kw">CREATE TABLE</span> <span class="tbl">buseo</span>
+(
+    buseo_no    <span class="fn">INT</span>
+  , buseo_name  <span class="fn">VARCHAR</span>(<span class="nl">30</span>)
+  , <span class="kw">CONSTRAINT</span> pk_buseo_no <span class="kw">PRIMARY KEY</span> (buseo_no)
+);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q8</span><span>sawon.buseo → FOREIGN KEY 설정</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">ADD CONSTRAINT</span> fk_sawon_buseo
+    <span class="kw">FOREIGN KEY</span> (buseo) <span class="kw">REFERENCES</span> <span class="tbl">buseo</span>(buseo_no);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q9</span><span>buseo 데이터 입력</span></div>
+            <pre><span class="kw">INSERT INTO</span> <span class="tbl">buseo</span>(buseo_no, buseo_name) <span class="kw">VALUES</span>(<span class="nl">101</span>, <span class="str">'소프트웨어유지보수부'</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">buseo</span>(buseo_no, buseo_name) <span class="kw">VALUES</span>(<span class="nl">202</span>, <span class="str">'관리부'</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">buseo</span>(buseo_no, buseo_name) <span class="kw">VALUES</span>(<span class="nl">303</span>, <span class="str">'인적자원부'</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q10</span><span>sawon 데이터 입력 + 오류 분석</span></div>
+            <pre><span class="cm">-- ❌ 8001: sawon_name '홍길동이군' → VARCHAR(15) 한글 5자 초과 오류</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">sawon</span>(sabun, sawon_name, weolgub, buseo, jiyeok)
+<span class="kw">VALUES</span>(<span class="nl">8001</span>, <span class="str">'홍길동이군'</span>, <span class="nl">100000</span>, <span class="nl">101</span>, <span class="str">'부산'</span>);
+
+<span class="cm">-- ❌ 8002: ubmu = '사무' → CHECK 제약조건 위반 오류</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">sawon</span>(sabun, sawon_name, ubmu, weolgub, buseo, jiyeok)
+<span class="kw">VALUES</span>(<span class="nl">8002</span>, <span class="str">'홍길자'</span>, <span class="str">'사무'</span>, <span class="nl">200000</span>, <span class="nl">202</span>, <span class="str">'인천'</span>);
+
+<span class="cm">-- ❌ 8003: buseo = 111 → buseo 테이블에 없는 번호, FK 오류</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">sawon</span>(sabun, sawon_name, ubmu, buseo, jiyeok)
+<span class="kw">VALUES</span>(<span class="nl">8003</span>, <span class="str">'홍길순'</span>, <span class="str">'개발'</span>, <span class="nl">111</span>, <span class="str">'대전'</span>);
+
+<span class="cm">-- ✅ 8004: buseo NULL 허용, ubmu → DEFAULT '개발' 자동 입력</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">sawon</span>(sabun, sawon_name, weolgub, jiyeok)
+<span class="kw">VALUES</span>(<span class="nl">8004</span>, <span class="str">'홍길석'</span>, <span class="nl">12345678</span>, <span class="str">'서울'</span>);
+
+<span class="cm">-- ✅ 8005: 정상 입력</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">sawon</span>(sabun, sawon_name, ubmu, buseo, jiyeok)
+<span class="kw">VALUES</span>(<span class="nl">8005</span>, <span class="str">'홍길철'</span>, <span class="str">'유지보수'</span>, <span class="nl">303</span>, <span class="str">'판교'</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q11</span><span>jiyeok 컬럼 삭제</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">sawon</span>
+    <span class="kw">DROP COLUMN</span> jiyeok;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q12</span><span>인적자원부 행 삭제 (FK 주의)</span></div>
+            <pre><span class="kw">DELETE FROM</span> <span class="tbl">buseo</span>
+<span class="kw">WHERE</span> buseo_name = <span class="str">'인적자원부'</span>;
+
+<span class="cm">-- ⚠️ sawon 테이블의 buseo(FK)가 buseo_no=303을 참조 중이면 FK 오류 발생!
+-- 해결 1: sawon에서 해당 사원 먼저 삭제 후 buseo 삭제
+-- 해결 2: FK를 ON DELETE CASCADE로 설정</span></pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q13</span><span>통합 CREATE 문 (1~8 단계)</span></div>
+            <pre><span class="cm">-- 자식 테이블 먼저 삭제</span>
+<span class="kw">DROP TABLE IF EXISTS</span> <span class="tbl">sawon</span>;
+<span class="kw">DROP TABLE IF EXISTS</span> <span class="tbl">buseo</span>;
+
+<span class="cm">-- 부모 테이블 먼저 생성</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">buseo</span>
+(
+    buseo_no    <span class="fn">INT</span>
+  , buseo_name  <span class="fn">VARCHAR</span>(<span class="nl">30</span>)
+  , <span class="kw">CONSTRAINT</span> pk_buseo_no <span class="kw">PRIMARY KEY</span> (buseo_no)
+);
+
+<span class="cm">-- 자식 테이블 생성 (모든 제약조건 포함)</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">sawon</span>
+(
+    sabun       <span class="fn">INT</span>(<span class="nl">6</span>)
+  , sawon_name  <span class="fn">VARCHAR</span>(<span class="nl">15</span>)
+  , ubmu        <span class="fn">VARCHAR</span>(<span class="nl">30</span>)   <span class="kw">DEFAULT</span>  <span class="str">'개발'</span>
+  , weolgub     <span class="fn">INT</span>
+  , buseo       <span class="fn">INT</span>
+  , jiyeok      <span class="fn">VARCHAR</span>(<span class="nl">30</span>)   <span class="kw">NOT NULL</span>
+  , <span class="kw">CONSTRAINT</span> pk_sawon_sabun  <span class="kw">PRIMARY KEY</span>  (sabun)
+  , <span class="kw">CONSTRAINT</span> ck_sawon_ubmu   <span class="kw">CHECK</span>        (ubmu <span class="kw">IN</span> (<span class="str">'개발'</span>, <span class="str">'유지보수'</span>, <span class="str">'관리'</span>))
+  , <span class="kw">CONSTRAINT</span> fk_sawon_buseo  <span class="kw">FOREIGN KEY</span>  (buseo) <span class="kw">REFERENCES</span> <span class="tbl">buseo</span>(buseo_no)
+);</pre>
+          </div>
+
+        </div><!-- /ans-block-a -->
+      </div>
+
+    </div><!-- /panel-a -->
+
+
+    <!-- ════════════════ TAB B ════════════════ -->
+    <div class="tab-panel tab-b-panel" id="panel-b">
+
+      <div class="panel-header">
+        <div class="panel-badge">B</div>
+        <div>
+          <div class="panel-title">student / library 테이블 연습</div>
+          <div class="panel-desc">제약조건 추가/삭제, FK 참조, DML 검증 — 총 6문제</div>
+        </div>
+      </div>
+
+      <!-- Progress B -->
+      <div class="prog-wrap">
+        <div class="prog-info">
+          <p>📊 풀이 진행 현황</p>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-b" style="width:0%"></div></div>
+        </div>
+        <div class="prog-count" id="cnt-b">0 / 6</div>
+      </div>
+
+      <div class="note">
+        💡 <strong>사전 준비</strong>: dept 테이블의 <code>deptno</code> 컬럼에 <strong>PRIMARY KEY</strong> 가 지정되어 있어야 student 테이블에서 참조할 수 있습니다.<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;외래키는 기본키여야 참조 가능 | NOT NULL 속성 제거는 MODIFY로 NULL 재정의
+      </div>
+
+      <!-- Q1-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 1</span>
+            <div class="q-text">아래 구조로 <strong>student</strong> 테이블을 생성하세요.</div>
+          </div>
+          <table class="q-table">
+            <tr><th>한글명</th><th>컬럼명</th><th>조건</th></tr>
+            <tr><td>학번</td><td>no</td><td>CHAR(4)</td></tr>
+            <tr><td>이름</td><td>name</td><td>NOT NULL</td></tr>
+            <tr><td>성별</td><td>gender</td><td>-</td></tr>
+            <tr><td>주소</td><td>addr</td><td>-</td></tr>
+            <tr><td>주민번호</td><td>jumin</td><td>NOT NULL</td></tr>
+            <tr><td>학과</td><td>deptno</td><td>dept 테이블의 deptno 참조 (FK)</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q2-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 2</span>
+            <div class="q-text"><strong>no</strong> 컬럼에 <strong>PRIMARY KEY</strong> 제약조건을 추가하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 3</span>
+            <div class="q-text"><strong>jumin</strong> 컬럼의 <strong>NOT NULL 제약조건을 삭제</strong>하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 4</span>
+            <div class="q-text"><strong>addr</strong> 컬럼에 DEFAULT 값으로 <strong>'서울'</strong> 을 추가하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 5</span>
+            <div class="q-text">
+              <strong>gender</strong> 컬럼에 <strong>'남성', '여성'</strong> 만 입력되도록 CHECK 제약조건을 추가하고, 아래 INSERT 문으로 동작을 확인하세요.
+              <span class="badge-hint badge-warn">⚠️ 오류 발생 행을 찾아보세요!</span>
+            </div>
+          </div>
+
+		  <table>
+			  <tr><th>no</th><th>name</th><th>gender</th><th>addr</th><th>jumin</th><th>deptno</th></tr>
+			  <tr><td>1111</td><td>김태희</td><td>여성</td><td>서울시 강남구</td><td>801212-1234567</td><td>-</td></tr>
+			  <tr><td>2222</td><td>송혜교</td><td>-</td><td>-</td><td>881212-1234567</td><td>-</td></tr>
+			  <tr><td>1111</td><td>강동원</td><td>-</td><td>-</td><td>881212-1234567</td><td>-</td></tr>
+			  <tr><td>3333</td><td>하정우</td><td>남자</td><td>-</td><td>830303-1234567</td><td>-</td></tr>
+			  <tr><td>4444</td><td>김새론</td><td>-</td><td>서울시 서초구</td><td>990909-1234567</td><td>-</td></tr>
+			  <tr><td>8888</td><td>이병헌</td><td>-</td><td>서울시 한강</td><td>-</td><td>50</td></tr>
+		  </table>
+        </div>
+      </div>
+
+      <!-- Q6-B -->
+      <div class="q-card">
+        <div class="q-body">
+          <div class="q-title">
+            <span class="q-num">Q 6</span>
+            <div class="q-text">
+              아래 구조로 <strong>library</strong> 테이블을 생성하고 INSERT로 동작을 확인하세요.
+              <span class="badge-hint badge-tip">💡 student.no가 PK여야 참조 가능!</span>
+            </div>
+          </div>
+          <table class="q-table" style="margin-top:12px">
+            <tr><th>한글명</th><th>컬럼명</th><th>조건</th></tr>
+            <tr><td>대여번호</td><td>rent_id</td><td>PRIMARY KEY / 숫자형</td></tr>
+            <tr><td>책번호</td><td>book_id</td><td>CHAR(5) / NOT NULL</td></tr>
+            <tr><td>학번</td><td>hakbun</td><td>student.no 참조 (FK)</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ALL ANSWERS B ── -->
+      <div class="all-ans-wrap">
+        <p class="all-ans-label">모든 문제를 풀어봤다면 아래 버튼으로 전체 정답을 확인하세요.</p>
+        <button class="show-all-btn" onclick="toggleAllAns('b')">
+          🔓 전체 정답 펼치기
+        </button>
+        <div class="ans-block" id="ans-block-b">
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q1</span><span>student 테이블 생성</span></div>
+            <pre><span class="cm">-- dept 테이블의 deptno가 PK여야 참조 가능!</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">student</span>
+(
+    no      <span class="fn">CHAR</span>(<span class="nl">4</span>)
+  , name    <span class="fn">VARCHAR</span>(<span class="nl">20</span>)    <span class="kw">NOT NULL</span>
+  , gender  <span class="fn">VARCHAR</span>(<span class="nl">10</span>)
+  , addr    <span class="fn">VARCHAR</span>(<span class="nl">100</span>)
+  , jumin   <span class="fn">CHAR</span>(<span class="nl">14</span>)       <span class="kw">NOT NULL</span>
+  , deptno  <span class="fn">INT</span>
+  , <span class="kw">CONSTRAINT</span> fk_student_deptno
+      <span class="kw">FOREIGN KEY</span> (deptno) <span class="kw">REFERENCES</span> <span class="tbl">dept</span>(deptno)
+);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q2</span><span>no 컬럼 PRIMARY KEY 추가</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">student</span>
+    <span class="kw">ADD CONSTRAINT</span> pk_student_no <span class="kw">PRIMARY KEY</span> (no);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q3</span><span>jumin NOT NULL 제거</span></div>
+            <pre><span class="cm">-- NOT NULL 제거는 MODIFY로 NULL 허용으로 재정의</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">student</span>
+    <span class="kw">MODIFY</span> jumin <span class="fn">CHAR</span>(<span class="nl">14</span>) <span class="kw">NULL</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q4</span><span>addr DEFAULT '서울' 추가</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">student</span>
+    <span class="kw">MODIFY</span> addr <span class="fn">VARCHAR</span>(<span class="nl">100</span>) <span class="kw">DEFAULT</span> <span class="str">'서울'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q5</span><span>gender CHECK 제약조건 + INSERT 확인</span></div>
+            <pre><span class="kw">ALTER TABLE</span> <span class="tbl">student</span>
+    <span class="kw">ADD CONSTRAINT</span> ck_student_gender
+    <span class="kw">CHECK</span> (gender <span class="kw">IN</span> (<span class="str">'남성'</span>, <span class="str">'여성'</span>));
+
+<span class="cm">-- ✅ 정상</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, gender, addr, jumin)
+<span class="kw">VALUES</span>(<span class="str">'1111'</span>, <span class="str">'김태희'</span>, <span class="str">'여성'</span>, <span class="str">'서울시 강남구'</span>, <span class="str">'801212-1234567'</span>);
+
+<span class="cm">-- ✅ 정상 (addr → DEFAULT '서울' 자동 입력)</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, jumin)
+<span class="kw">VALUES</span>(<span class="str">'2222'</span>, <span class="str">'송혜교'</span>, <span class="str">'881212-1234567'</span>);
+
+<span class="cm">-- ❌ PK 오류: no='1111' 이미 존재</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, jumin)
+<span class="kw">VALUES</span>(<span class="str">'1111'</span>, <span class="str">'강동원'</span>, <span class="str">'881212-1234567'</span>);
+
+<span class="cm">-- ❌ CHECK 오류: gender='남자' → '남성','여성'만 허용</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, gender, jumin)
+<span class="kw">VALUES</span>(<span class="str">'3333'</span>, <span class="str">'하정우'</span>, <span class="str">'남자'</span>, <span class="str">'830303-1234567'</span>);
+
+<span class="cm">-- ✅ 정상</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, addr, jumin)
+<span class="kw">VALUES</span>(<span class="str">'4444'</span>, <span class="str">'김새론'</span>, <span class="str">'서울시 서초구'</span>, <span class="str">'990909-1234567'</span>);
+
+<span class="cm">-- ❌ FK 오류: deptno=50이 dept 테이블에 없음</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">student</span>(no, name, addr, deptno)
+<span class="kw">VALUES</span>(<span class="str">'8888'</span>, <span class="str">'이병헌'</span>, <span class="str">'서울시 한강'</span>, <span class="nl">50</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-header"><span class="a-badge">Q6</span><span>library 테이블 생성 + INSERT 확인</span></div>
+            <pre><span class="kw">CREATE TABLE</span> <span class="tbl">library</span>
+(
+    rent_id <span class="fn">INT</span>
+  , book_id  <span class="fn">CHAR</span>(<span class="nl">5</span>)   <span class="kw">NOT NULL</span>
+  , hakbun   <span class="fn">CHAR</span>(<span class="nl">4</span>)
+  , <span class="kw">CONSTRAINT</span> pk_library_rent_id
+      <span class="kw">PRIMARY KEY</span> (rent_id)
+  , <span class="kw">CONSTRAINT</span> fk_library_hakbun
+      <span class="kw">FOREIGN KEY</span> (hakbun) <span class="kw">REFERENCES</span> <span class="tbl">student</span>(no)
+);
+
+<span class="cm">-- ✅ 정상 (학번 1111, 2222, 4444 존재)</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">library</span>(rent_id, book_id, hakbun) <span class="kw">VALUES</span>(<span class="nl">1</span>, <span class="str">'bk001'</span>, <span class="str">'1111'</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">library</span>(rent_id, book_id, hakbun) <span class="kw">VALUES</span>(<span class="nl">2</span>, <span class="str">'bk002'</span>, <span class="str">'2222'</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">library</span>(rent_id, book_id, hakbun) <span class="kw">VALUES</span>(<span class="nl">4</span>, <span class="str">'bk004'</span>, <span class="str">'4444'</span>);
+
+<span class="cm">-- ❌ FK 오류: 학번 '5555'가 student 테이블에 없음</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">library</span>(rent_id, book_id, hakbun) <span class="kw">VALUES</span>(<span class="nl">5</span>, <span class="str">'bk005'</span>, <span class="str">'5555'</span>);</pre>
+          </div>
+
+        </div><!-- /ans-block-b -->
+      </div>
+
+    </div><!-- /panel-b -->
+
+  </div><!-- /tab-content -->
+</div><!-- /container -->
+
+<script>
+  /* ── TAB SWITCH ── */
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.tab-btn.tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  /* ── TOGGLE ALL ANSWERS ── */
+  function toggleAllAns(tab) {
+    const block = document.getElementById('ans-block-' + tab);
+    const btn   = document.querySelector('#panel-' + tab + ' .show-all-btn');
+    const isOpen = block.classList.toggle('open');
+    btn.textContent = isOpen ? '🔒 전체 정답 접기' : '🔓 전체 정답 펼치기';
+  }
+</script>
+
+</body>
+</html>
