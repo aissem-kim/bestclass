@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔍 SQL 서브쿼리 연습문제</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f2f5fc; --surface:#fff; --surface2:#eaf0fb; --border:#d3dced;
+    --text:#1a2035; --muted:#6b7a99;
+    --a:#2563eb; --a-light:#dbeafe;
+    --b:#0891b2; --b-light:#cffafe;
+    --green:#16a34a; --yellow:#d97706; --red:#dc2626;
+    --code-bg:#eef2ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.7;}
+
+  header{background:linear-gradient(135deg,#dbeafe 0%,#f2f5fc 45%,#cffafe 100%);border-bottom:1px solid var(--border);padding:40px 0 28px;text-align:center;}
+  .badge{display:inline-block;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.28);color:var(--a);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:12px;}
+  header h1{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:-1px;margin-bottom:7px;}
+  .ha{color:var(--a);} .hb{color:var(--b);}
+  header p{color:var(--muted);font-size:13px;}
+
+  .wrap{max-width:980px;margin:0 auto;padding:30px 20px 80px;}
+
+  /* TABS */
+  .tabs{display:flex;gap:8px;}
+  .tab-btn{flex:1;padding:13px 16px;border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0;background:var(--surface2);color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .tab-btn .ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;}
+  .tab-btn.ta .ico{background:rgba(37,99,235,.12);color:var(--a);}
+  .tab-btn.tb .ico{background:rgba(8,145,178,.12);color:var(--b);}
+  .tab-btn.ta.active{background:#fff;color:var(--a);border-color:rgba(37,99,235,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn.tb.active{background:#fff;color:var(--b);border-color:rgba(8,145,178,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn:not(.active):hover{background:#fff;color:var(--text);}
+
+  .panel-wrap{background:#fff;border:1px solid var(--border);border-radius:0 0 16px 16px;padding:32px 28px;}
+  .panel{display:none;} .panel.active{display:block;}
+  .panel.ta{border-top:3px solid var(--a);}
+  .panel.tb{border-top:3px solid var(--b);}
+
+  .ph{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .ph-badge{font-size:20px;font-weight:900;padding:6px 16px;border-radius:10px;}
+  .ta .ph-badge{background:var(--a-light);color:var(--a);}
+  .tb .ph-badge{background:var(--b-light);color:var(--b);}
+  .ph-title{font-size:17px;font-weight:700;}
+  .ph-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .info-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:22px;}
+  .info-table th{font-weight:700;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  .ta .info-table th{background:rgba(37,99,235,.07);color:var(--a);}
+  .tb .info-table th{background:rgba(8,145,178,.07);color:var(--b);}
+  .info-table td{padding:7px 12px;border:1px solid var(--border);font-size:13px;}
+  .info-table td code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  .info-table tr:nth-child(even) td{background:rgba(0,0,0,.02);}
+
+  /* 문제 그룹 구분선 */
+  .q-section{margin:20px 0 12px;padding:8px 14px;background:var(--surface2);border-left:3px solid var(--a);border-radius:6px;font-size:12px;font-weight:700;color:var(--muted);}
+  .tb .q-section{border-left-color:var(--b);}
+
+  .q-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;padding:16px 18px;transition:border-color .2s,box-shadow .2s;}
+  .ta .q-card:hover{border-color:rgba(37,99,235,.35);box-shadow:0 2px 10px rgba(37,99,235,.06);}
+  .tb .q-card:hover{border-color:rgba(8,145,178,.35);box-shadow:0 2px 10px rgba(8,145,178,.06);}
+  .q-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+  .q-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0;margin-top:1px;}
+  .ta .q-num{background:var(--a-light);color:var(--a);border:1px solid rgba(37,99,235,.2);}
+  .tb .q-num{background:var(--b-light);color:var(--b);border:1px solid rgba(8,145,178,.2);}
+  .q-text{font-size:14px;font-weight:500;line-height:1.65;}
+  .note{font-size:12px;color:var(--muted);margin-top:3px;}
+  .hint{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;background:rgba(217,119,6,.1);color:var(--yellow);border:1px solid rgba(217,119,6,.25);}
+
+  .write-area{background:var(--code-bg);border:1px dashed var(--border);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-height:42px;}
+
+  .ans-wrap{margin-top:28px;padding-top:24px;border-top:2px dashed var(--border);text-align:center;}
+  .ans-wrap p{font-size:13px;color:var(--muted);margin-bottom:14px;}
+  .show-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 32px;border:none;border-radius:50px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .2s,transform .2s;margin-bottom:24px;}
+  .ta .show-btn{background:linear-gradient(135deg,var(--a),#1d4ed8);}
+  .tb .show-btn{background:linear-gradient(135deg,var(--b),#0e7490);}
+  .show-btn:hover{opacity:.85;transform:translateY(-2px);}
+  .ans-block{display:none;text-align:left;} .ans-block.open{display:block;}
+
+  .ans-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  .ans-card-hd{display:flex;align-items:center;gap:10px;padding:9px 15px;background:var(--surface2);border-bottom:1px solid var(--border);}
+  .a-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;}
+  .ta .a-num{background:var(--a-light);color:var(--a);}
+  .tb .a-num{background:var(--b-light);color:var(--b);}
+  .ans-card-hd span{font-size:13px;font-weight:600;}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:auto;background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.2);}
+  .tag-corr{background:rgba(220,38,38,.1);color:var(--red);border-color:rgba(220,38,38,.2);}
+
+  pre{background:var(--code-bg);padding:14px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.85;color:var(--text);}
+  .kw{color:#1d4ed8;font-weight:700;} .fn{color:#7c3aed;} .str{color:#15803d;}
+  .nl{color:#b45309;} .cm{color:#94a3b8;font-style:italic;} .tbl{color:#be185d;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL Subquery Practice</div>
+  <h1>🔍 SQL <span class="ha">서브쿼리</span> 연습문제</h1>
+  <p>단일행 · 다중행(IN) · 상관 서브쿼리 — 직접 SQL을 작성하며 익혀보세요</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn ta active" onclick="switchTab('a')">
+      <span class="ico">A</span> emp 테이블 도전문제 (15문제)
+    </button>
+    <button class="tab-btn tb" onclick="switchTab('b')">
+      <span class="ico">B</span> HR 계정 서브쿼리 (7문제)
+    </button>
+  </div>
+
+  <div class="panel-wrap">
+
+    <!-- ═══ TAB A ═══ -->
+    <div class="panel ta active" id="panel-a">
+      <div class="ph">
+        <div class="ph-badge">A</div>
+        <div>
+          <div class="ph-title">emp 테이블 서브쿼리 도전문제</div>
+          <div class="ph-sub">단일행 · IN · NOT IN · 다중컬럼 · 상관 서브쿼리 — 15문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>테이블</th><th>주요 컬럼</th></tr>
+        <tr><td><code>emp</code></td><td>empno, ename, job, sal, mgr, hiredate, deptno</td></tr>
+        <tr><td><code>dept</code></td><td>deptno, dname, loc</td></tr>
+      </table>
+
+      <div class="q-section">🔹 단일 행 서브쿼리 (= 비교)</div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 1</span>
+          <div class="q-text">Blake와 <strong>같은 부서</strong>에 있는 모든 사원의 이름과 입사일자를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 2</span>
+          <div class="q-text"><strong>평균 급여 이상</strong>을 받는 모든 사원에 대해 사번과 이름을 출력하세요.</div>
+        </div>
+        <div class="note">단, 급여가 많은 순으로 정렬</div>
+        <div class="write-area" style="margin-top:10px"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 5</span>
+          <div class="q-text"><strong>King에게 보고</strong>하는 모든 사원의 이름과 급여를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 6</span>
+          <div class="q-text"><strong>SALES 부서</strong>의 사원명과 업무를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 7</span>
+          <div class="q-text">월급이 <strong>30번 부서의 최저 월급보다 많은</strong> 사원들을 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-section">🔹 다중 행 서브쿼리 (IN · NOT IN)</div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 3</span>
+          <div class="q-text">이름에 <strong>'T'가 있는 사원</strong>이 근무하는 부서에서 근무하는 모든 사원에 대해 사번, 이름, 급여를 출력하세요.</div>
+        </div>
+        <div class="note">단, 사번순으로 정렬</div>
+        <div class="write-area" style="margin-top:10px"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 4</span>
+          <div class="q-text">부서위치가 <strong>Dallas와 NEW YORK</strong>인 모든 사원에 대해 이름, 업무, 급여를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 8</span>
+          <div class="q-text"><strong>10번 부서</strong>의 직원들 중 <strong>30번 부서 사원과 같은 업무</strong>를 맡고 있는 사원의 이름과 업무를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 11</span>
+          <div class="q-text"><strong>SCOTT 또는 WARD</strong>와 월급이 같은 사원의 이름, 업무, 급여를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 12</span>
+          <div class="q-text"><strong>CHICAGO</strong>에서 근무하는 사원과 같은 업무를 하는 사원의 이름, 업무를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-section">🔹 다중 컬럼 · 복합 조건</div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 9</span>
+          <div class="q-text"><strong>Ford와 업무도 월급도 같은</strong> 사원의 모든 정보를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 10</span>
+          <div class="q-text">업무가 <strong>JONES와 같거나</strong> 월급이 <strong>FORD의 월급 이상</strong>인 사원의 이름, 업무, 부서번호, 급여를 출력하세요.</div>
+        </div>
+        <div class="note">단, 업무별 후 월급이 많은 순으로 정렬</div>
+        <div class="write-area" style="margin-top:10px"></div>
+      </div>
+
+      <div class="q-section">🔹 상관 서브쿼리 (Correlated Subquery) · NOT IN</div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 13</span>
+          <div class="q-text"><strong>부서별로</strong> 월급이 <strong>평균 월급보다 높은</strong> 사원을 부서번호, 이름, 급여를 출력하세요.<span class="hint">💡 상관 서브쿼리</span></div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 14</span>
+          <div class="q-text"><strong>업무별로</strong> 월급이 <strong>평균 월급보다 낮은</strong> 사원을 부서번호, 이름, 급여를 출력하세요.<span class="hint">💡 상관 서브쿼리</span></div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 15</span>
+          <div class="q-text"><strong>말단 사원</strong>(부하 직원이 없는 사원)의 사번, 이름, 업무, 부서번호를 출력하세요.<span class="hint">💡 NOT IN + mgr</span></div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <!-- ANSWERS A -->
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('a')">🔓 emp 도전문제 정답 펼치기</button>
+        <div class="ans-block" id="ans-a">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q1</span><span>Blake와 같은 부서 사원</span><span class="tag">단일행 =</span></div>
+            <pre><span class="kw">SELECT</span>  ename, hiredate
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno = (<span class="kw">SELECT</span> deptno <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename = <span class="str">'BLAKE'</span>)
+  <span class="kw">AND</span>   ename != <span class="str">'BLAKE'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q2</span><span>평균 급여 이상 사원 (급여 내림차순)</span><span class="tag">단일행 ≥</span></div>
+            <pre><span class="kw">SELECT</span>  empno, ename
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   sal &gt;= (<span class="kw">SELECT</span> <span class="fn">AVG</span>(sal) <span class="kw">FROM</span> <span class="tbl">emp</span>)
+<span class="kw">ORDER BY</span> sal <span class="kw">DESC</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q3</span><span>'T' 포함 사원과 같은 부서 근무 사원 (사번순)</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  empno, ename, sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno <span class="kw">IN</span> (
+            <span class="kw">SELECT DISTINCT</span> deptno <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename <span class="kw">LIKE</span> <span class="str">'%T%'</span>
+        )
+<span class="kw">ORDER BY</span> empno;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q4</span><span>Dallas와 NEW YORK 근무 사원</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job, sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> deptno <span class="kw">FROM</span> <span class="tbl">dept</span>
+            <span class="kw">WHERE</span>  loc <span class="kw">IN</span> (<span class="str">'DALLAS'</span>, <span class="str">'NEW YORK'</span>)
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q5</span><span>King에게 보고하는 사원</span><span class="tag">단일행 =</span></div>
+            <pre><span class="kw">SELECT</span>  ename, sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   mgr = (<span class="kw">SELECT</span> empno <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename = <span class="str">'KING'</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q6</span><span>SALES 부서 사원명과 업무</span><span class="tag">단일행 =</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno = (
+            <span class="kw">SELECT</span> deptno <span class="kw">FROM</span> <span class="tbl">dept</span> <span class="kw">WHERE</span> dname = <span class="str">'SALES'</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q7</span><span>30번 부서 최저 월급보다 많은 사원</span><span class="tag">단일행 &gt;</span></div>
+            <pre><span class="kw">SELECT</span>  *
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   sal &gt; (<span class="kw">SELECT</span> <span class="fn">MIN</span>(sal) <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> deptno = <span class="nl">30</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q8</span><span>10번 부서 중 30번 부서와 같은 업무</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno = <span class="nl">10</span>
+  <span class="kw">AND</span>   job <span class="kw">IN</span> (
+            <span class="kw">SELECT DISTINCT</span> job <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> deptno = <span class="nl">30</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q9</span><span>Ford와 업무·월급 모두 같은 사원</span><span class="tag">다중컬럼</span></div>
+            <pre><span class="kw">SELECT</span>  *
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   (job, sal) = (
+            <span class="kw">SELECT</span> job, sal <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename = <span class="str">'FORD'</span>
+        )
+  <span class="kw">AND</span>   ename != <span class="str">'FORD'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q10</span><span>업무가 JONES와 같거나 FORD 월급 이상 (업무별, 급여 내림차순)</span><span class="tag">OR 복합</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job, deptno, sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   job = (<span class="kw">SELECT</span> job <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename = <span class="str">'JONES'</span>)
+   <span class="kw">OR</span>   sal &gt;= (<span class="kw">SELECT</span> sal <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename = <span class="str">'FORD'</span>)
+<span class="kw">ORDER BY</span> job, sal <span class="kw">DESC</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q11</span><span>SCOTT 또는 WARD와 월급이 같은 사원</span><span class="tag">IN · NOT IN</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job, sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   sal <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> sal <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> ename <span class="kw">IN</span> (<span class="str">'SCOTT'</span>, <span class="str">'WARD'</span>)
+        )
+  <span class="kw">AND</span>   ename <span class="kw">NOT IN</span> (<span class="str">'SCOTT'</span>, <span class="str">'WARD'</span>);</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q12</span><span>CHICAGO 근무 사원과 같은 업무</span><span class="tag">중첩 IN</span></div>
+            <pre><span class="kw">SELECT</span>  ename, job
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   job <span class="kw">IN</span> (
+            <span class="kw">SELECT DISTINCT</span> job <span class="kw">FROM</span> <span class="tbl">emp</span>
+            <span class="kw">WHERE</span>  deptno = (<span class="kw">SELECT</span> deptno <span class="kw">FROM</span> <span class="tbl">dept</span> <span class="kw">WHERE</span> loc = <span class="str">'CHICAGO'</span>)
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q13</span><span>부서별 평균보다 높은 월급 사원</span><span class="tag class tag-corr">상관 서브쿼리</span></div>
+            <pre><span class="kw">SELECT</span>  e.deptno, e.ename, e.sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e
+<span class="kw">WHERE</span>   e.sal &gt; (
+            <span class="kw">SELECT</span> <span class="fn">AVG</span>(sal) <span class="kw">FROM</span> <span class="tbl">emp</span>
+            <span class="kw">WHERE</span>  deptno = e.deptno
+        )
+<span class="kw">ORDER BY</span> e.deptno;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q14</span><span>업무별 평균보다 낮은 월급 사원</span><span class="tag class tag-corr">상관 서브쿼리</span></div>
+            <pre><span class="kw">SELECT</span>  e.deptno, e.ename, e.sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e
+<span class="kw">WHERE</span>   e.sal &lt; (
+            <span class="kw">SELECT</span> <span class="fn">AVG</span>(sal) <span class="kw">FROM</span> <span class="tbl">emp</span>
+            <span class="kw">WHERE</span>  job = e.job
+        )
+<span class="kw">ORDER BY</span> e.deptno;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q15</span><span>말단 사원 (부하 직원이 없는 사원)</span><span class="tag">NOT IN</span></div>
+            <pre><span class="kw">SELECT</span>  empno, ename, job, deptno
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   empno <span class="kw">NOT IN</span> (
+            <span class="kw">SELECT DISTINCT</span> mgr <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> mgr <span class="kw">IS NOT NULL</span>
+        );</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-a -->
+
+
+    <!-- ═══ TAB B ═══ -->
+    <div class="panel tb" id="panel-b">
+      <div class="ph">
+        <div class="ph-badge">B</div>
+        <div>
+          <div class="ph-title">HR 계정 서브쿼리</div>
+          <div class="ph-sub">employees + departments · 단일행 · IN · 복합 — 7문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>테이블</th><th>주요 컬럼</th></tr>
+        <tr><td><code>employees</code></td><td>employee_id, last_name, salary, hire_date, job_id, department_id, manager_id</td></tr>
+        <tr><td><code>departments</code></td><td>department_id, department_name, location_id</td></tr>
+      </table>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 1</span>
+          <div class="q-text">Timothy와 <strong>동일한 부서</strong>에 속한 모든 사원의 이름과 입사일을 표시하세요.</div>
+        </div>
+        <div class="note">Timothy는 제외</div>
+        <div class="write-area" style="margin-top:10px"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 2</span>
+          <div class="q-text">급여가 <strong>평균 급여보다 많은</strong> 모든 사원의 사원 번호와 이름을 표시하세요.</div>
+        </div>
+        <div class="note">결과를 급여에 대해 오름차순으로 정렬</div>
+        <div class="write-area" style="margin-top:10px"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 3</span>
+          <div class="q-text">이름에 <code>u</code>가 포함된 사원과 <strong>같은 부서</strong>에서 일하는 모든 사원의 사원 번호와 이름을 표시하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 4</span>
+          <div class="q-text">부서 위치 ID가 <strong>1700</strong>인 모든 사원의 이름, 부서 번호, 업무 ID를 표시하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 5</span>
+          <div class="q-text"><strong>King에게 보고</strong>하는 모든 사원의 이름과 급여를 표시하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 6</span>
+          <div class="q-text"><strong>Executive 부서</strong>의 모든 사원에 대한 부서 번호, 이름, 업무 ID를 표시하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 7</span>
+          <div class="q-text"><strong>평균 급여보다 많은</strong> 급여를 받고 이름에 <code>u</code>가 포함된 사원과 <strong>같은 부서</strong>에서 근무하는 모든 사원의 사원 번호, 이름, 급여를 표시하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <!-- ANSWERS B -->
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('b')">🔓 HR 서브쿼리 정답 펼치기</button>
+        <div class="ans-block" id="ans-b">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q1</span><span>Timothy와 같은 부서 사원 (Timothy 제외)</span><span class="tag">단일행 =</span></div>
+            <pre><span class="kw">SELECT</span>  last_name, hire_date
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id = (
+            <span class="kw">SELECT</span> department_id <span class="kw">FROM</span> <span class="tbl">employees</span>
+            <span class="kw">WHERE</span>  last_name = <span class="str">'Timothy'</span>
+        )
+  <span class="kw">AND</span>   last_name &lt;&gt; <span class="str">'Timothy'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q2</span><span>평균 급여보다 많은 사원 (급여 오름차순)</span><span class="tag">단일행 &gt;</span></div>
+            <pre><span class="kw">SELECT</span>  employee_id, last_name
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   salary &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(salary) <span class="kw">FROM</span> <span class="tbl">employees</span>)
+<span class="kw">ORDER BY</span> salary;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q3</span><span>이름에 'u' 포함 사원과 같은 부서 사원</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  employee_id, last_name
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> department_id <span class="kw">FROM</span> <span class="tbl">employees</span>
+            <span class="kw">WHERE</span>  last_name <span class="kw">LIKE</span> <span class="str">'%u%'</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q4</span><span>위치 ID 1700인 부서 사원 이름, 부서번호, 업무 ID</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  last_name, department_id, job_id
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> department_id <span class="kw">FROM</span> <span class="tbl">departments</span>
+            <span class="kw">WHERE</span>  location_id = <span class="nl">1700</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q5</span><span>King에게 보고하는 사원 이름과 급여</span><span class="tag">단일행 =</span></div>
+            <pre><span class="kw">SELECT</span>  last_name, salary
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   manager_id = (
+            <span class="kw">SELECT</span> employee_id <span class="kw">FROM</span> <span class="tbl">employees</span>
+            <span class="kw">WHERE</span>  last_name = <span class="str">'King'</span>
+              <span class="kw">AND</span>  employee_id = <span class="nl">100</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q6</span><span>Executive 부서 사원 부서번호, 이름, 업무 ID</span><span class="tag">IN</span></div>
+            <pre><span class="kw">SELECT</span>  department_id, last_name, job_id
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> department_id <span class="kw">FROM</span> <span class="tbl">departments</span>
+            <span class="kw">WHERE</span>  department_name = <span class="str">'Executive'</span>
+        );</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q7</span><span>평균급여 초과 + 'u' 포함 사원과 같은 부서</span><span class="tag">복합 IN</span></div>
+            <pre><span class="kw">SELECT</span>  employee_id, last_name, salary
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id <span class="kw">IN</span> (
+            <span class="kw">SELECT</span> department_id <span class="kw">FROM</span> <span class="tbl">employees</span>
+            <span class="kw">WHERE</span>  last_name <span class="kw">LIKE</span> <span class="str">'%u%'</span>
+        )
+  <span class="kw">AND</span>   salary &gt; (
+            <span class="kw">SELECT</span> <span class="fn">AVG</span>(salary) <span class="kw">FROM</span> <span class="tbl">employees</span>
+        );</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-b -->
+
+  </div><!-- /panel-wrap -->
+</div><!-- /wrap -->
+
+<script>
+  function switchTab(t) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.tab-btn.' + (t==='a'?'ta':'tb')).classList.add('active');
+    document.getElementById('panel-' + t).classList.add('active');
+  }
+  function toggleAns(t) {
+    const block = document.getElementById('ans-' + t);
+    const btn   = document.querySelector('#panel-' + t + ' .show-btn');
+    const open  = block.classList.toggle('open');
+    const labels = {a:'emp 도전문제', b:'HR 서브쿼리'};
+    btn.textContent = open ? '🔒 정답 접기' : `🔓 ${labels[t]} 정답 펼치기`;
+  }
+</script>
+</body>
+</html>

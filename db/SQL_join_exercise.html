@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔗 SQL 조인 연습문제</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f2f5fc; --surface:#fff; --surface2:#eaf0fb; --border:#d3dced;
+    --text:#1a2035; --muted:#6b7a99;
+    --a:#2563eb;  --a-light:#dbeafe;
+    --b:#7c3aed;  --b-light:#ede9fe;
+    --c:#0891b2;  --c-light:#cffafe;
+    --green:#16a34a; --yellow:#d97706; --red:#dc2626;
+    --code-bg:#eef2ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.7;}
+
+  /* HEADER */
+  header{background:linear-gradient(135deg,#dbeafe 0%,#f2f5fc 40%,#ede9fe 70%,#cffafe 100%);border-bottom:1px solid var(--border);padding:40px 0 28px;text-align:center;}
+  .badge{display:inline-block;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.28);color:var(--a);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:12px;}
+  header h1{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:-1px;margin-bottom:7px;}
+  .ha{color:var(--a);} .hb{color:var(--b);} .hc{color:var(--c);}
+  header p{color:var(--muted);font-size:13px;}
+
+  .wrap{max-width:980px;margin:0 auto;padding:30px 20px 80px;}
+
+  /* NOTICE */
+  .notice{background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--muted);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;}
+  .notice strong{color:var(--text);}
+
+  /* TABS */
+  .tabs{display:flex;gap:6px;}
+  .tab-btn{flex:1;padding:12px 10px;border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0;background:var(--surface2);color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .tab-btn .ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;}
+  .tab-btn.ta .ico{background:rgba(37,99,235,.12);color:var(--a);}
+  .tab-btn.tb .ico{background:rgba(124,58,237,.12);color:var(--b);}
+  .tab-btn.tc .ico{background:rgba(8,145,178,.12);color:var(--c);}
+  .tab-btn.ta.active{background:#fff;color:var(--a);border-color:rgba(37,99,235,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn.tb.active{background:#fff;color:var(--b);border-color:rgba(124,58,237,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn.tc.active{background:#fff;color:var(--c);border-color:rgba(8,145,178,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn:not(.active):hover{background:#fff;color:var(--text);}
+
+  /* PANEL */
+  .panel-wrap{background:#fff;border:1px solid var(--border);border-radius:0 0 16px 16px;padding:32px 28px;}
+  .panel{display:none;} .panel.active{display:block;}
+  .panel.ta{border-top:3px solid var(--a);}
+  .panel.tb{border-top:3px solid var(--b);}
+  .panel.tc{border-top:3px solid var(--c);}
+
+  .ph{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .ph-badge{font-size:19px;font-weight:900;padding:5px 14px;border-radius:10px;}
+  .ta .ph-badge{background:var(--a-light);color:var(--a);}
+  .tb .ph-badge{background:var(--b-light);color:var(--b);}
+  .tc .ph-badge{background:var(--c-light);color:var(--c);}
+  .ph-title{font-size:16px;font-weight:700;}
+  .ph-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* INFO TABLE */
+  .info-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:22px;}
+  .info-table th{font-weight:700;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  .ta .info-table th{background:rgba(37,99,235,.07);color:var(--a);}
+  .tb .info-table th{background:rgba(124,58,237,.07);color:var(--b);}
+  .tc .info-table th{background:rgba(8,145,178,.07);color:var(--c);}
+  .info-table td{padding:7px 12px;border:1px solid var(--border);font-size:13px;}
+  .info-table td code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  .info-table tr:nth-child(even) td{background:rgba(0,0,0,.02);}
+
+  /* Q CARD */
+  .q-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;padding:18px 20px;transition:border-color .2s,box-shadow .2s;}
+  .ta .q-card:hover{border-color:rgba(37,99,235,.35);box-shadow:0 2px 10px rgba(37,99,235,.06);}
+  .tb .q-card:hover{border-color:rgba(124,58,237,.35);box-shadow:0 2px 10px rgba(124,58,237,.06);}
+  .tc .q-card:hover{border-color:rgba(8,145,178,.35);box-shadow:0 2px 10px rgba(8,145,178,.06);}
+  .q-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .q-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0;margin-top:2px;}
+  .ta .q-num{background:var(--a-light);color:var(--a);border:1px solid rgba(37,99,235,.2);}
+  .tb .q-num{background:var(--b-light);color:var(--b);border:1px solid rgba(124,58,237,.2);}
+  .tc .q-num{background:var(--c-light);color:var(--c);border:1px solid rgba(8,145,178,.2);}
+  .q-text{font-size:14px;font-weight:500;line-height:1.65;}
+  .hint{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;background:rgba(217,119,6,.1);color:var(--yellow);border:1px solid rgba(217,119,6,.25);}
+  .warn{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;background:rgba(220,38,38,.08);color:var(--red);border:1px solid rgba(220,38,38,.2);}
+
+  /* RESULT TABLE */
+  .r-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  .r-table th{background:rgba(37,99,235,.07);color:var(--a);font-weight:700;padding:7px 12px;border:1px solid var(--border);text-align:left;}
+  .r-table td{padding:6px 12px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;}
+  .r-table tr:nth-child(even) td{background:rgba(0,0,0,.02);}
+
+  .write-area{background:var(--code-bg);border:1px dashed var(--border);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-height:48px;}
+
+  /* ANSWERS */
+  .ans-wrap{margin-top:32px;padding-top:26px;border-top:2px dashed var(--border);text-align:center;}
+  .ans-wrap p{font-size:13px;color:var(--muted);margin-bottom:14px;}
+  .show-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 32px;border:none;border-radius:50px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .2s,transform .2s;margin-bottom:26px;}
+  .ta .show-btn{background:linear-gradient(135deg,var(--a),#1d4ed8);}
+  .tb .show-btn{background:linear-gradient(135deg,var(--b),#6d28d9);}
+  .tc .show-btn{background:linear-gradient(135deg,var(--c),#0e7490);}
+  .show-btn:hover{opacity:.85;transform:translateY(-2px);}
+  .ans-block{display:none;text-align:left;} .ans-block.open{display:block;}
+
+  .ans-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+  .ans-card-hd{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);}
+  .a-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;}
+  .ta .a-num{background:var(--a-light);color:var(--a);}
+  .tb .a-num{background:var(--b-light);color:var(--b);}
+  .tc .a-num{background:var(--c-light);color:var(--c);}
+  .ans-card-hd span{font-size:13px;font-weight:600;}
+
+  pre{background:var(--code-bg);padding:15px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.85;color:var(--text);}
+  .kw{color:#1d4ed8;font-weight:700;} .fn{color:#7c3aed;} .str{color:#15803d;}
+  .nl{color:#b45309;} .cm{color:#94a3b8;font-style:italic;} .tbl{color:#be185d;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL Join Practice</div>
+  <h1>🔗 SQL <span class="ha">조인</span> 연습문제</h1>
+  <p>INNER JOIN · SELF JOIN · OUTER JOIN · 3테이블 조인 — 직접 SQL을 작성하며 익혀보세요</p>
+</header>
+
+<div class="wrap">
+
+  <div class="notice">
+    💡 <strong>Alias 작성 규칙</strong>: 출력 컬럼의 별칭(Alias)은 <strong>영어</strong>로 작성합니다. 정답의 한글 Alias는 참고용입니다.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn ta active" onclick="switchTab('a')">
+      <span class="ico">A</span> 기초문제 (emp+dept)
+    </button>
+    <button class="tab-btn tb" onclick="switchTab('b')">
+      <span class="ico">B</span> 도전문제 (SELF·OUTER JOIN)
+    </button>
+    <button class="tab-btn tc" onclick="switchTab('c')">
+      <span class="ico">C</span> HR 계정 도전문제
+    </button>
+  </div>
+
+  <div class="panel-wrap">
+
+    <!-- ═══ TAB A ═══ -->
+    <div class="panel ta active" id="panel-a">
+      <div class="ph">
+        <div class="ph-badge">A</div>
+        <div>
+          <div class="ph-title">기초 문제 (emp + dept)</div>
+          <div class="ph-sub">INNER JOIN · WHERE 조건 · GROUP BY — 5문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>테이블</th><th>주요 컬럼</th></tr>
+        <tr><td><code>emp</code></td><td>empno, ename, job, sal, comm, hiredate, mgr, deptno</td></tr>
+        <tr><td><code>dept</code></td><td>deptno, dname, loc</td></tr>
+      </table>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 1</span>
+          <div class="q-text">EMP 테이블에서 사원번호, 이름, 업무, 부서번호와 DEPT 테이블에서 부서명, 근무지를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 2</span>
+          <div class="q-text"><strong>SALESMAN</strong> 사원만 사원번호, 이름, 급여, 부서명, 근무지를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 3</span>
+          <div class="q-text">보너스(comm)를 받는 사원에 대해 이름, 부서명, 위치를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 4</span>
+          <div class="q-text">부서별 <strong>부서명</strong>과 <strong>급여 합계</strong>를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 5</span>
+          <div class="q-text">업무가 <code>MANAGER</code>인 사원의 이름, 업무, 부서명, 근무지를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('a')">🔓 기초문제 정답 펼치기</button>
+        <div class="ans-block" id="ans-a">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q1</span><span>사원번호, 이름, 업무, 부서번호, 부서명, 근무지</span></div>
+            <pre><span class="cm">-- 방법1: WHERE 절</span>
+<span class="kw">SELECT</span>  e.empno, e.ename, e.job, e.deptno,
+        d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno;
+
+<span class="cm">-- 방법2: INNER JOIN</span>
+<span class="kw">SELECT</span>  e.empno, e.ename, e.job, e.deptno,
+        d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e  <span class="kw">INNER JOIN</span>  <span class="tbl">dept</span> d
+<span class="kw">ON</span>      e.deptno = d.deptno;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q2</span><span>SALESMAN 사원만 사원번호, 이름, 급여, 부서명, 근무지</span></div>
+            <pre><span class="kw">SELECT</span>  e.empno, e.ename, e.sal,
+        d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno
+  <span class="kw">AND</span>   e.job = <span class="str">'SALESMAN'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q3</span><span>보너스(comm) 받는 사원 이름, 부서명, 위치</span></div>
+            <pre><span class="kw">SELECT</span>  e.ename, d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno
+  <span class="kw">AND</span>   e.comm <span class="kw">IS NOT NULL</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q4</span><span>부서별 부서명과 급여 합계</span></div>
+            <pre><span class="kw">SELECT</span>  d.dname,
+        <span class="fn">SUM</span>(e.sal)  <span class="kw">AS</span>  sal_sum
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno
+<span class="kw">GROUP BY</span> d.deptno, d.dname;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q5</span><span>MANAGER 사원의 이름, 업무, 부서명, 근무지</span></div>
+            <pre><span class="cm">-- 방법1: WHERE 절</span>
+<span class="kw">SELECT</span>  e.ename, e.job, d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno
+  <span class="kw">AND</span>   e.job = <span class="str">'MANAGER'</span>;
+
+<span class="cm">-- 방법2: INNER JOIN</span>
+<span class="kw">SELECT</span>  e.ename, e.job, d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e  <span class="kw">INNER JOIN</span>  <span class="tbl">dept</span> d
+<span class="kw">ON</span>      e.deptno = d.deptno
+<span class="kw">WHERE</span>   e.job = <span class="str">'MANAGER'</span>;</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-a -->
+
+
+    <!-- ═══ TAB B ═══ -->
+    <div class="panel tb" id="panel-b">
+      <div class="ph">
+        <div class="ph-badge">B</div>
+        <div>
+          <div class="ph-title">도전 문제 (SELF JOIN · OUTER JOIN)</div>
+          <div class="ph-sub">SELF JOIN · LIKE · LEFT OUTER JOIN — 3문제</div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 6</span>
+          <div class="q-text">관리자보다 <strong>먼저 입사한 사원</strong>에 대해 이름, 입사일, 관리자 이름, 관리자 입사일을 출력하세요.
+            <span class="hint">💡 SELF JOIN 활용</span>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 7</span>
+          <div class="q-text">사원명에 <code>L</code>자가 있는 사원에 대해 이름, 업무, 부서명, 위치를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 8</span>
+          <div class="q-text">아래의 결과를 출력하세요. (관리자가 없는 KING을 포함하여 모든 사원 출력)
+            <span class="hint">💡 LEFT OUTER JOIN + SELF JOIN</span>
+          </div>
+        </div>
+        <table class="r-table" style="margin-top:12px">
+          <tr><th>사번</th><th>사원명</th><th>매니저사번</th><th>매니저명</th></tr>
+          <tr><td>7839</td><td>KING</td><td>(null)</td><td>(null)</td></tr>
+          <tr><td>7698</td><td>BLAKE</td><td>7839</td><td>KING</td></tr>
+          <tr><td>7782</td><td>CLARK</td><td>7839</td><td>KING</td></tr>
+          <tr><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+        </table>
+        <div class="write-area" style="margin-top:12px"></div>
+      </div>
+
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('b')">🔓 도전문제 정답 펼치기</button>
+        <div class="ans-block" id="ans-b">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q6</span><span>관리자보다 먼저 입사한 사원 (SELF JOIN)</span></div>
+            <pre><span class="kw">SELECT</span>  e1.ename      <span class="kw">AS</span>  emp_name,
+        e1.hiredate   <span class="kw">AS</span>  emp_hiredate,
+        e2.ename      <span class="kw">AS</span>  mgr_name,
+        e2.hiredate   <span class="kw">AS</span>  mgr_hiredate
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e1, <span class="tbl">emp</span> e2
+<span class="kw">WHERE</span>   e1.mgr = e2.empno
+  <span class="kw">AND</span>   e1.hiredate &lt; e2.hiredate;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q7</span><span>이름에 'L'이 있는 사원 이름, 업무, 부서명, 위치</span></div>
+            <pre><span class="cm">-- 방법1: INNER JOIN</span>
+<span class="kw">SELECT</span>  e.ename, e.job, d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e  <span class="kw">INNER JOIN</span>  <span class="tbl">dept</span> d
+<span class="kw">ON</span>      e.deptno = d.deptno
+<span class="kw">WHERE</span>   e.ename <span class="kw">LIKE</span> <span class="str">'%L%'</span>;
+
+<span class="cm">-- 방법2: WHERE 절</span>
+<span class="kw">SELECT</span>  e.ename, e.job, d.dname, d.loc
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e, <span class="tbl">dept</span> d
+<span class="kw">WHERE</span>   e.deptno = d.deptno
+  <span class="kw">AND</span>   e.ename <span class="kw">LIKE</span> <span class="str">'%L%'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q8</span><span>KING 포함 모든 사원 출력 (LEFT OUTER JOIN)</span></div>
+            <pre><span class="kw">SELECT</span>  e1.empno   <span class="kw">AS</span>  empno,
+        e1.ename   <span class="kw">AS</span>  ename,
+        e1.mgr     <span class="kw">AS</span>  mgr_no,
+        e2.ename   <span class="kw">AS</span>  mgr_name
+<span class="kw">FROM</span>    <span class="tbl">emp</span> e1  <span class="kw">LEFT OUTER JOIN</span>  <span class="tbl">emp</span> e2
+<span class="kw">ON</span>      e1.mgr = e2.empno;</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-b -->
+
+
+    <!-- ═══ TAB C ═══ -->
+    <div class="panel tc" id="panel-c">
+      <div class="ph">
+        <div class="ph-badge">C</div>
+        <div>
+          <div class="ph-title">HR 계정 도전 문제</div>
+          <div class="ph-sub">employees + departments + jobs 3테이블 조인 · LEFT OUTER JOIN — 4문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>테이블</th><th>주요 컬럼</th></tr>
+        <tr><td><code>employees</code></td><td>employee_id, last_name, job_id, salary, hire_date, department_id, manager_id</td></tr>
+        <tr><td><code>departments</code></td><td>department_id, department_name</td></tr>
+        <tr><td><code>jobs</code></td><td>job_id, job_title</td></tr>
+      </table>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 9</span>
+          <div class="q-text">성(last_name)이 <code>King</code>인 사원의 사번과 부서명을 출력하세요.
+            <br><small style="color:var(--muted)">사용 테이블: employees, departments</small>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 10</span>
+          <div class="q-text">성(last_name)이 <code>King</code>인 사원의 사번, 부서명, 업무명을 출력하세요.
+            <span class="hint">💡 3테이블 조인</span>
+            <br><small style="color:var(--muted)">사용 테이블: employees, departments, jobs</small>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 11</span>
+          <div class="q-text">2007년 상반기(1월~6월)에 입사한 사원들의 사번, 이름, 입사일, 부서명을 출력하세요.
+            <span class="warn">⚠️ 부서 미배정 사원도 출력되어야 함</span>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row"><span class="q-num">Q 12</span>
+          <div class="q-text"><code>Executive</code> 부서에서 사원과 해당 사원의 매니저(상사) 이름을 출력하세요.
+            <span class="warn">⚠️ 매니저가 없는 King도 출력되어야 함</span>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('c')">🔓 HR 도전문제 정답 펼치기</button>
+        <div class="ans-block" id="ans-c">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q9</span><span>성이 'King'인 사원의 사번과 부서명</span></div>
+            <pre><span class="kw">SELECT</span>  e.employee_id,
+        e.last_name,
+        d.department_name
+<span class="kw">FROM</span>    <span class="tbl">employees</span> e  <span class="kw">INNER JOIN</span>  <span class="tbl">departments</span> d
+<span class="kw">ON</span>      e.department_id = d.department_id
+<span class="kw">WHERE</span>   e.last_name = <span class="str">'King'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q10</span><span>성이 'King'인 사원의 사번, 부서명, 업무명 (3테이블 조인)</span></div>
+            <pre><span class="kw">SELECT</span>  e.employee_id,
+        e.last_name,
+        d.department_name,
+        j.job_title
+<span class="kw">FROM</span>    <span class="tbl">employees</span> e
+        <span class="kw">INNER JOIN</span>  <span class="tbl">departments</span> d  <span class="kw">ON</span>  e.department_id = d.department_id
+        <span class="kw">INNER JOIN</span>  <span class="tbl">jobs</span> j          <span class="kw">ON</span>  e.job_id = j.job_id
+<span class="kw">WHERE</span>   e.last_name = <span class="str">'King'</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q11</span><span>2007년 상반기 입사 사원 (부서 미배정 포함 → LEFT OUTER JOIN)</span></div>
+            <pre><span class="kw">SELECT</span>  e.employee_id,
+        e.last_name,
+        e.hire_date,
+        d.department_name
+<span class="kw">FROM</span>    <span class="tbl">employees</span> e  <span class="kw">LEFT OUTER JOIN</span>  <span class="tbl">departments</span> d
+<span class="kw">ON</span>      e.department_id = d.department_id
+<span class="kw">WHERE</span>   <span class="fn">YEAR</span>(hire_date)  = <span class="nl">2007</span>
+  <span class="kw">AND</span>   <span class="fn">MONTH</span>(hire_date) <span class="kw">BETWEEN</span> <span class="nl">1</span> <span class="kw">AND</span> <span class="nl">6</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q12</span><span>Executive 부서 사원 + 매니저 이름 (King 포함 → LEFT OUTER JOIN)</span></div>
+            <pre><span class="cm">-- 단계1: Executive 부서 사원 + 매니저 사번 확인</span>
+<span class="kw">SELECT</span>  e.last_name, e.manager_id
+<span class="kw">FROM</span>    <span class="tbl">employees</span> e  <span class="kw">JOIN</span>  <span class="tbl">departments</span> d
+<span class="kw">ON</span>      e.department_id = d.department_id
+  <span class="kw">AND</span>   d.department_name = <span class="str">'Executive'</span>;
+
+<span class="cm">-- 단계2: 매니저 이름까지 출력 (King 포함 → LEFT OUTER JOIN)</span>
+<span class="kw">SELECT</span>  a.last_name   <span class="kw">AS</span>  emp_name,
+        b.last_name   <span class="kw">AS</span>  mgr_name,
+        d.department_name
+<span class="kw">FROM</span>    <span class="tbl">employees</span> a
+        <span class="kw">LEFT OUTER JOIN</span>  <span class="tbl">employees</span> b    <span class="kw">ON</span>  a.manager_id = b.employee_id
+        <span class="kw">JOIN</span>  <span class="tbl">departments</span> d            <span class="kw">ON</span>  a.department_id = d.department_id
+                                        <span class="kw">AND</span> d.department_name = <span class="str">'Executive'</span>;</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-c -->
+
+  </div><!-- /panel-wrap -->
+</div><!-- /wrap -->
+
+<script>
+  function switchTab(t) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const map = {a:'ta', b:'tb', c:'tc'};
+    document.querySelector('.tab-btn.' + map[t]).classList.add('active');
+    document.getElementById('panel-' + t).classList.add('active');
+  }
+  function toggleAns(t) {
+    const block = document.getElementById('ans-' + t);
+    const btn   = document.querySelector('#panel-' + t + ' .show-btn');
+    const open  = block.classList.toggle('open');
+    const labels = {a:'기초문제', b:'도전문제', c:'HR 도전문제'};
+    btn.textContent = open ? '🔒 정답 접기' : `🔓 ${labels[t]} 정답 펼치기`;
+  }
+</script>
+</body>
+</html>

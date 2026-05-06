@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 SQL 그룹 연습문제</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f2f5fc; --surface:#fff; --surface2:#eaf0fb; --border:#d3dced;
+    --text:#1a2035; --muted:#6b7a99;
+    --a:#2563eb; --a-light:#dbeafe;
+    --b:#0891b2; --b-light:#cffafe;
+    --green:#16a34a; --yellow:#d97706;
+    --code-bg:#eef2ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.7;}
+
+  header{background:linear-gradient(135deg,#dbeafe 0%,#f2f5fc 45%,#cffafe 100%);border-bottom:1px solid var(--border);padding:40px 0 28px;text-align:center;}
+  .badge{display:inline-block;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.28);color:var(--a);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:12px;}
+  header h1{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:-1px;margin-bottom:7px;}
+  header h1 .ha{color:var(--a);} header h1 .hb{color:var(--b);}
+  header p{color:var(--muted);font-size:13px;}
+
+  .wrap{max-width:980px;margin:0 auto;padding:30px 20px 80px;}
+
+  .tabs{display:flex;gap:8px;}
+  .tab-btn{flex:1;padding:13px 16px;border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0;background:var(--surface2);color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .tab-btn .ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;}
+  .tab-btn.ta .ico{background:rgba(37,99,235,.12);color:var(--a);}
+  .tab-btn.tb .ico{background:rgba(8,145,178,.12);color:var(--b);}
+  .tab-btn.ta.active{background:#fff;color:var(--a);border-color:rgba(37,99,235,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn.tb.active{background:#fff;color:var(--b);border-color:rgba(8,145,178,.3);border-bottom:2px solid #fff;margin-bottom:-1px;z-index:2;}
+  .tab-btn:not(.active):hover{background:#fff;color:var(--text);}
+
+  .panel-wrap{background:#fff;border:1px solid var(--border);border-radius:0 0 16px 16px;padding:32px 28px;}
+  .panel{display:none;} .panel.active{display:block;}
+  .panel.ta{border-top:3px solid var(--a);}
+  .panel.tb{border-top:3px solid var(--b);}
+
+  .ph{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .ph-badge{font-size:20px;font-weight:900;padding:6px 16px;border-radius:10px;}
+  .ta .ph-badge{background:var(--a-light);color:var(--a);}
+  .tb .ph-badge{background:var(--b-light);color:var(--b);}
+  .ph-title{font-size:17px;font-weight:700;}
+  .ph-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .info-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px;}
+  .info-table th{font-weight:700;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  .ta .info-table th{background:rgba(37,99,235,.07);color:var(--a);}
+  .tb .info-table th{background:rgba(8,145,178,.07);color:var(--b);}
+  .info-table td{padding:7px 12px;border:1px solid var(--border);}
+  .info-table td code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  .info-table tr:nth-child(even) td{background:rgba(0,0,0,.02);}
+
+  .q-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;padding:18px 20px;transition:border-color .2s,box-shadow .2s;}
+  .ta .q-card:hover{border-color:rgba(37,99,235,.35);box-shadow:0 2px 10px rgba(37,99,235,.07);}
+  .tb .q-card:hover{border-color:rgba(8,145,178,.35);box-shadow:0 2px 10px rgba(8,145,178,.07);}
+  .q-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .q-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0;margin-top:2px;}
+  .ta .q-num{background:var(--a-light);color:var(--a);border:1px solid rgba(37,99,235,.2);}
+  .tb .q-num{background:var(--b-light);color:var(--b);border:1px solid rgba(8,145,178,.2);}
+  .q-text{font-size:14px;font-weight:500;line-height:1.65;}
+  .hint{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;background:rgba(217,119,6,.1);color:var(--yellow);border:1px solid rgba(217,119,6,.25);}
+
+  .write-area{background:var(--code-bg);border:1px dashed var(--border);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-height:48px;}
+
+  .ans-wrap{margin-top:32px;padding-top:26px;border-top:2px dashed var(--border);text-align:center;}
+  .ans-wrap p{font-size:13px;color:var(--muted);margin-bottom:14px;}
+  .show-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 32px;border:none;border-radius:50px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .2s,transform .2s;margin-bottom:26px;}
+  .ta .show-btn{background:linear-gradient(135deg,var(--a),#1d4ed8);}
+  .tb .show-btn{background:linear-gradient(135deg,var(--b),#0e7490);}
+  .show-btn:hover{opacity:.85;transform:translateY(-2px);}
+
+  .ans-block{display:none;text-align:left;} .ans-block.open{display:block;}
+
+  .ans-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+  .ans-card-hd{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);}
+  .a-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;}
+  .ta .a-num{background:var(--a-light);color:var(--a);}
+  .tb .a-num{background:var(--b-light);color:var(--b);}
+  .ans-card-hd span{font-size:13px;font-weight:600;}
+
+  .tip{background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-left:3px solid var(--a);border-radius:8px;padding:10px 14px;font-size:12px;color:#1e3a8a;margin:0 0 4px;}
+
+  pre{background:var(--code-bg);padding:15px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.85;color:var(--text);}
+  .kw{color:#1d4ed8;font-weight:700;} .fn{color:#7c3aed;} .str{color:#15803d;}
+  .nl{color:#b45309;} .cm{color:#94a3b8;font-style:italic;} .tbl{color:#be185d;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">SQL Group Practice</div>
+  <h1>📊 SQL <span class="ha">그룹</span> 연습문제</h1>
+  <p>GROUP BY · HAVING · 집계함수 · WHERE vs HAVING — 직접 SQL을 작성하며 익혀보세요</p>
+</header>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn ta active" onclick="switchTab('a')">
+      <span class="ico">A</span> EMP 테이블 연습문제 (3문제)
+    </button>
+    <button class="tab-btn tb" onclick="switchTab('b')">
+      <span class="ico">B</span> HR 계정 도전문제 (3문제)
+    </button>
+  </div>
+
+  <div class="panel-wrap">
+
+    <!-- ═══ TAB A ═══ -->
+    <div class="panel ta active" id="panel-a">
+      <div class="ph">
+        <div class="ph-badge">A</div>
+        <div>
+          <div class="ph-title">EMP 테이블 그룹 추가 연습문제</div>
+          <div class="ph-sub">WHERE vs HAVING · GROUP BY 다중 컬럼 · 날짜 함수 — 3문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>한글명</th><th>컬럼명</th></tr>
+        <tr><td>사원번호</td><td><code>empno</code></td></tr>
+        <tr><td>이름</td><td><code>ename</code></td></tr>
+        <tr><td>업무</td><td><code>job</code></td></tr>
+        <tr><td>급여</td><td><code>sal</code></td></tr>
+        <tr><td>입사일</td><td><code>hiredate</code></td></tr>
+        <tr><td>부서번호</td><td><code>deptno</code></td></tr>
+      </table>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 1</span>
+          <div class="q-text">
+            업무별·부서별 급여합계와 인원수를 출력하되,<br>
+            <strong>10번 부서를 제외</strong>하고 업무가 <code>SALESMAN</code>과 <code>MANAGER</code>만 출력하세요.
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 2</span>
+          <div class="q-text">
+            업무별로 평균급여와 최대급여를 출력하되,<br>
+            <strong>평균급여가 2000 이상</strong>인 것만 출력하고 <strong>평균급여가 높은 순</strong>으로 정렬하세요.
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 3</span>
+          <div class="q-text">같은 <strong>입사년도별</strong>로 인원수를 출력하세요.</div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <!-- ANSWERS A -->
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('a')">🔓 전체 정답 펼치기</button>
+        <div class="ans-block" id="ans-a">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q1</span><span>업무별·부서별 급여합계와 인원수 (10번 제외, SALESMAN·MANAGER만)</span></div>
+            <pre><span class="cm">-- 방법1: WHERE 절 활용 ⭐ 권장 (그룹화 전 필터링 → 성능 유리)</span>
+<span class="kw">SELECT</span>  job,
+        deptno,
+        <span class="fn">SUM</span>(sal)   <span class="kw">AS</span>  급여합계,
+        <span class="fn">COUNT</span>(*)   <span class="kw">AS</span>  인원수
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">WHERE</span>   deptno &lt;&gt; <span class="nl">10</span>
+  <span class="kw">AND</span>   job <span class="kw">IN</span> (<span class="str">'SALESMAN'</span>, <span class="str">'MANAGER'</span>)
+<span class="kw">GROUP BY</span> job, deptno;
+
+<span class="cm">-- 방법2: HAVING 절 활용</span>
+<span class="kw">SELECT</span>  job,
+        deptno,
+        <span class="fn">SUM</span>(sal)   <span class="kw">AS</span>  급여합계,
+        <span class="fn">COUNT</span>(*)   <span class="kw">AS</span>  인원수
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">GROUP BY</span> job, deptno
+<span class="kw">HAVING</span>  deptno &lt;&gt; <span class="nl">10</span>
+  <span class="kw">AND</span>   job <span class="kw">IN</span> (<span class="str">'SALESMAN'</span>, <span class="str">'MANAGER'</span>);</pre>
+            <div style="padding:0 16px 14px">
+              <div class="tip">💡 <strong>WHERE vs HAVING</strong> — 개별 행 조건은 WHERE, 그룹화 결과 조건은 HAVING 사용</div>
+            </div>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q2</span><span>업무별 평균급여·최대급여 (평균 2000 이상, 평균 높은 순)</span></div>
+            <pre><span class="kw">SELECT</span>  job,
+        <span class="fn">AVG</span>(sal)   <span class="kw">AS</span>  avg_sal,
+        <span class="fn">MAX</span>(sal)   <span class="kw">AS</span>  max_sal
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">GROUP BY</span> job
+<span class="kw">HAVING</span>  <span class="fn">AVG</span>(sal) &gt;= <span class="nl">2000</span>
+<span class="kw">ORDER BY</span> <span class="fn">AVG</span>(sal) <span class="kw">DESC</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q3</span><span>입사년도별 인원수</span></div>
+            <pre><span class="kw">SELECT</span>  <span class="fn">YEAR</span>(hiredate)   <span class="kw">AS</span>  입사년도,
+        <span class="fn">COUNT</span>(*)         <span class="kw">AS</span>  인원수
+<span class="kw">FROM</span>    <span class="tbl">emp</span>
+<span class="kw">GROUP BY</span> <span class="fn">YEAR</span>(hiredate)
+<span class="kw">ORDER BY</span> <span class="fn">YEAR</span>(hiredate);</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-a -->
+
+
+    <!-- ═══ TAB B ═══ -->
+    <div class="panel tb" id="panel-b">
+      <div class="ph">
+        <div class="ph-badge">B</div>
+        <div>
+          <div class="ph-title">HR 계정 그룹 도전문제</div>
+          <div class="ph-sub">YEAR · MIN/MAX/SUM/AVG · HAVING · IN — 3문제</div>
+        </div>
+      </div>
+
+      <table class="info-table">
+        <tr><th>한글명</th><th>컬럼명</th></tr>
+        <tr><td>사번</td><td><code>employee_id</code></td></tr>
+        <tr><td>이름</td><td><code>last_name</code></td></tr>
+        <tr><td>업무코드</td><td><code>job_id</code></td></tr>
+        <tr><td>급여</td><td><code>salary</code></td></tr>
+        <tr><td>입사일</td><td><code>hire_date</code></td></tr>
+        <tr><td>부서번호</td><td><code>department_id</code></td></tr>
+      </table>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 1</span>
+          <div class="q-text">
+            연도별로 입사자들의 <strong>최솟값, 최댓값, 급여합계, 평균급여</strong>를 구하세요.
+            <span class="hint">💡 YEAR(hire_date) 그룹화, 평균 소수점 제거</span>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 2</span>
+          <div class="q-text">
+            부서별 평균급여가 <strong>$10,000 이상</strong>인 부서만 구하세요.
+            <strong>(평균급여가 높은 순으로 정렬)</strong>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-row">
+          <span class="q-num">Q 3</span>
+          <div class="q-text">
+            부서별 최대급여를 구하세요.
+            <strong>(해당 부서는 10번과 20번임)</strong>
+          </div>
+        </div>
+        <div class="write-area"></div>
+      </div>
+
+      <!-- ANSWERS B -->
+      <div class="ans-wrap">
+        <p>모든 문제를 풀어본 후 아래 버튼으로 정답을 확인하세요.</p>
+        <button class="show-btn" onclick="toggleAns('b')">🔓 전체 정답 펼치기</button>
+        <div class="ans-block" id="ans-b">
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q1</span><span>연도별 최솟값·최댓값·합계·평균</span></div>
+            <pre><span class="kw">SELECT</span>  <span class="fn">YEAR</span>(hire_date)          <span class="kw">AS</span>  hire_year,
+        <span class="fn">MIN</span>(salary)              <span class="kw">AS</span>  최솟급여,
+        <span class="fn">MAX</span>(salary)              <span class="kw">AS</span>  최대급여,
+        <span class="fn">SUM</span>(salary)              <span class="kw">AS</span>  급여합계,
+        <span class="fn">TRUNCATE</span>(<span class="fn">AVG</span>(salary), <span class="nl">0</span>) <span class="kw">AS</span>  평균급여
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">GROUP BY</span> hire_year
+<span class="kw">ORDER BY</span> hire_year;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q2</span><span>부서별 평균급여 $10,000 이상 (높은 순)</span></div>
+            <pre><span class="kw">SELECT</span>  department_id,
+        <span class="fn">TRUNCATE</span>(<span class="fn">AVG</span>(salary), <span class="nl">0</span>)  <span class="kw">AS</span>  avg_sal
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">GROUP BY</span> department_id
+<span class="kw">HAVING</span>  <span class="fn">AVG</span>(salary) &gt;= <span class="nl">10000</span>
+<span class="kw">ORDER BY</span> <span class="fn">AVG</span>(salary) <span class="kw">DESC</span>;</pre>
+          </div>
+
+          <div class="ans-card">
+            <div class="ans-card-hd"><span class="a-num">Q3</span><span>부서별 최대급여 (10번·20번 부서)</span></div>
+            <pre><span class="kw">SELECT</span>  department_id,
+        <span class="fn">MAX</span>(salary)   <span class="kw">AS</span>  최대급여
+<span class="kw">FROM</span>    <span class="tbl">employees</span>
+<span class="kw">WHERE</span>   department_id <span class="kw">IN</span> (<span class="nl">10</span>, <span class="nl">20</span>)
+<span class="kw">GROUP BY</span> department_id;</pre>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /panel-b -->
+
+  </div><!-- /panel-wrap -->
+</div><!-- /wrap -->
+
+<script>
+  function switchTab(t) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.tab-btn.' + (t==='a'?'ta':'tb')).classList.add('active');
+    document.getElementById('panel-' + t).classList.add('active');
+  }
+  function toggleAns(t) {
+    const block = document.getElementById('ans-' + t);
+    const btn   = document.querySelector('#panel-' + t + ' .show-btn');
+    const open  = block.classList.toggle('open');
+    btn.textContent = open ? '🔒 전체 정답 접기' : '🔓 전체 정답 펼치기';
+  }
+</script>
+</body>
+</html>
